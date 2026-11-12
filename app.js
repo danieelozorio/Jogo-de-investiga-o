@@ -234,9 +234,11 @@ function telaLobby(el) {
     </div>
     <h3 class="sec">Na roda (${js.length})</h3>
     <div class="card">${js.map((j, i) => `
-      <div class="loc-row"><span class="seat">${i + 1}</span> ${esc(j.nome)}${j.id === me.id ? ' <span class="tag">você</span>' : ''}${i === 0 ? ' <span class="tag">anfitrião</span>' : ''}
+      <div class="loc-row"><span class="seat">${i + 1}</span> ${j.bot ? '🤖 ' : ''}${esc(j.nome)}${j.id === me.id ? ' <span class="tag">você</span>' : ''}${i === 0 ? ' <span class="tag">anfitrião</span>' : ''}
         ${me.host && j.id !== me.id ? `<button class="x rm" data-id="${j.id}" aria-label="Remover">✕</button>` : ''}</div>`).join('')}
     </div>
+    ${me.host && js.length < 12 ? `<button class="btn ghost" id="bot">🤖 Adicionar bot</button>
+      <p class="muted center small">Bots jogam sozinhos, no aleatório. Bom pra testar ou completar a roda.</p>` : ''}
     ${me.host ? `
       ${js.length < 5 ? `<p class="muted center">Precisa de pelo menos 5 pessoas (o ideal é de 6 a 8).</p>` : ''}
       <button class="btn big" id="start" ${js.length < 5 ? 'disabled' : ''}>🌙 Começar: cair a noite</button>`
@@ -246,6 +248,7 @@ function telaLobby(el) {
   $('#cp').onclick = () => copy(linkSala(), $('#cp'));
   $$('.rm').forEach(b => b.onclick = () => { if (confirm('Remover essa pessoa da sala?')) act('jg_remover', { p_id: +b.dataset.id }); });
   if ($('#start')) $('#start').onclick = () => act('jg_comecar', {});
+  if ($('#bot')) $('#bot').onclick = () => act('jg_add_bot', {}, 'Bot adicionado 🤖');
   $('#rules2').onclick = () => { stopPoll(); renderRules(() => entrarNoJogo()); };
 }
 
@@ -313,6 +316,7 @@ function bindForce() {
 }
 
 function anuncioManha(a) {
+  if (a && a.manha) a = a.manha;
   if (!a || a.tipo !== 'manha') return '';
   const linhas = [];
   (a.mortos || []).forEach(m => linhas.push(`💀 <b>${esc(m.nome)}</b> foi encontrado(a) sem vida em casa. Perto do corpo: <b>${esc(m.arma)}</b>.`));
@@ -372,6 +376,7 @@ function telaVeredito(el) {
         <p>A vila expulsou</p><h2>${esc(a.expulso.nome)}</h2><p>Era <b>${PAPEIS[a.expulso.papel].nome}</b>${a.expulso.papel === 'assassino' ? ' 🎯' : ' 😬'}</p>`
       : '<div class="hero-icon">🤷</div><h2>Ninguém foi expulso</h2><p>Empate, pulos ou poucos votos.</p>'}
     </div>
+    ${anuncioManha(a)}
     <h3 class="sec">Como cada um votou</h3>
     <div class="card">${(a.votos || []).map(v => `<div class="loc-row"><b>${esc(v.de)}</b> → ${esc(v.em)}</div>`).join('')}</div>
     ${infoPrivada()}

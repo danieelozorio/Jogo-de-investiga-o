@@ -36,6 +36,7 @@ create table if not exists public.jogadores (
   unique (sala, nome)
 );
 create index if not exists jogadores_sala_idx on public.jogadores(sala);
+alter table public.jogadores add column if not exists bot boolean not null default false;
 
 alter table public.salas enable row level security;
 alter table public.jogadores enable row level security;
@@ -206,7 +207,7 @@ begin
   update salas set fase = 'dia',
     anuncio = jsonb_build_object('tipo', 'manha', 'dia', s.dia, 'mortos', mortos_json, 'salvos', salvos, 'palavras', palavras)
     where code = p_code;
-  perform _jg_checar(p_code);
+  if not _jg_checar(p_code) then perform _jg_bots_votar(p_code); end if;
 end $$;
 
 -- ---------- apura a votação ----------
@@ -230,10 +231,10 @@ begin
       info = jsonb_build_array('⚖️ A vila votou e você foi expulso(a). Agora é alma penada: não pode falar, mas de noite pode deixar uma palavra numa casa.')
       where id = topo;
     update salas set fase = 'veredito', anuncio = jsonb_build_object('tipo', 'veredito', 'dia', s.dia, 'votos', votos,
-      'expulso', jsonb_build_object('nome', fora.nome, 'papel', fora.papel)) where code = p_code;
+      'expulso', jsonb_build_object('nome', fora.nome, 'papel', fora.papel), 'manha', s.anuncio) where code = p_code;
   else
     update salas set fase = 'veredito', anuncio = jsonb_build_object('tipo', 'veredito', 'dia', s.dia, 'votos', votos,
-      'expulso', null) where code = p_code;
+      'expulso', null, 'manha', s.anuncio) where code = p_code;
   end if;
   update jogadores set voto = null, votou = false where sala = p_code;
   perform _jg_checar(p_code);
@@ -288,7 +289,7 @@ begin
   me := _jg_me(p_code, p_token);
   select * into s from salas where code = me.sala;
   select json_agg(json_build_object(
-      'id', j.id, 'nome', j.nome, 'vivo', j.vivo,
+      'id', j.id, 'nome', j.nome, 'vivo', j.vivo, 'bot', j.bot,
       'pronto', case when s.fase = 'noite' then j.agiu when s.fase = 'dia' then j.votou else false end,
       'papel', case
         when s.fase = 'fim' then j.papel
@@ -343,6 +344,7 @@ begin
     voto = null, votou = false, info = '[]'::jsonb
   from p where j.id = p.id;
   update salas set fase = 'noite', dia = 1, vencedor = null, anuncio = jsonb_build_object('tipo', 'inicio') where code = me.sala;
+  perform _jg_bots_noite(me.sala);
   perform _jg_bump(me.sala);
 end $$;
 
@@ -396,6 +398,7 @@ begin
   if s.fase = 'veredito' then
     update salas set fase = 'noite', dia = dia + 1 where code = me.sala;
     update jogadores set agiu = false, alvo = null, palavra = null where sala = me.sala;
+    perform _jg_bots_noite(me.sala);
   elsif s.fase = 'noite' then
     perform _jg_resolver_noite(me.sala);
   elsif s.fase = 'dia' then
@@ -414,6 +417,70 @@ begin
   update jogadores set papel = null, vivo = true, alvo = null, palavra = null, agiu = false, voto = null, votou = false, info = '[]'::jsonb
     where sala = me.sala;
   update salas set fase = 'lobby', dia = 0, vencedor = null, anuncio = '{}'::jsonb where code = me.sala;
+  perform _jg_bump(me.sala);
+end $$;
+
+-- ============================================================
+-- Bots (pra testar com pouca gente). Jogam sozinhos e no aleatório.
+-- ============================================================
+create or replace function public._jg_bots_noite(p_code text) returns void
+language plpgsql security definer set search_path = public as $$
+declare b jogadores; a bigint;
+begin
+  for b in select * from jogadores where sala = p_code and bot and vivo loop
+    if b.papel = 'assassino' then
+      -- ataca a casa de alguém que não é parceiro
+      select id into a from jogadores where sala = p_code and vivo and papel <> 'assassino' order by random() limit 1;
+    elsif b.papel = 'fofoqueira' then
+      select id into a from jogadores where sala = p_code and vivo and id <> b.id order by random() limit 1;
+    else
+      select id into a from jogadores where sala = p_code and vivo order by random() limit 1;
+    end if;
+    update jogadores set alvo = coalesce(a, b.id), agiu = true where id = b.id;
+  end loop;
+  -- se só sobraram bots vivos, a noite resolve na hora
+  if exists (select 1 from jogadores where sala = p_code and vivo)
+     and not exists (select 1 from jogadores where sala = p_code and vivo and not agiu) then
+    perform _jg_resolver_noite(p_code);
+  end if;
+end $$;
+
+create or replace function public._jg_bots_votar(p_code text) returns void
+language plpgsql security definer set search_path = public as $$
+declare b jogadores; a bigint; suspeito bigint;
+begin
+  -- a "fofoca da roda": os bots tendem a votar todos no mesmo suspeito
+  select id into suspeito from jogadores where sala = p_code and vivo order by random() limit 1;
+  for b in select * from jogadores where sala = p_code and bot and vivo loop
+    a := suspeito;
+    if b.papel = 'assassino' and exists (select 1 from jogadores where id = a and papel = 'assassino') then
+      select id into a from jogadores where sala = p_code and vivo and papel <> 'assassino' order by random() limit 1;
+    end if;
+    if a = b.id or random() < 0.2 then a := null; end if;
+    update jogadores set voto = a, votou = true where id = b.id;
+  end loop;
+  if not exists (select 1 from jogadores where sala = p_code and vivo and not votou) then
+    perform _jg_apurar(p_code);
+  end if;
+end $$;
+
+create or replace function public.jg_add_bot(p_code text, p_token uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  me jogadores; s salas; k int; n text;
+  nomes text[] := array['Bot Tchê','Bot Bah','Bot Guri','Bot Prenda','Bot Peão','Bot Xiru',
+                        'Bot Chinoca','Bot Piá','Bot Gaudério','Bot Vivente','Bot Changueiro'];
+begin
+  me := _jg_me(p_code, p_token);
+  select * into s from salas where code = me.sala for update;
+  if s.host_token <> me.token then raise exception 'Só quem criou a sala pode adicionar bots.'; end if;
+  if s.fase <> 'lobby' then raise exception 'Só dá pra adicionar bots antes de começar.'; end if;
+  select count(*) into k from jogadores where sala = me.sala;
+  if k >= 12 then raise exception 'A sala está cheia (máximo 12).'; end if;
+  select x into n from unnest(nomes) x
+    where not exists (select 1 from jogadores where sala = me.sala and nome = x) limit 1;
+  if n is null then n := 'Bot ' || (k + 1); end if;
+  insert into jogadores(sala, nome, ordem, bot) values (me.sala, n, k + 1, true);
   perform _jg_bump(me.sala);
 end $$;
 

@@ -15,6 +15,8 @@ Toda a lógica secreta roda no banco (Supabase). Nenhum celular, nem o de quem c
 | 🍺 | Bêbado (7+) | Acha que é Vigia, mas vê coisa errada. |
 | 🏠 | Morador | Visita uma casa (ou fica na sua) e vê quem estava lá. |
 
+Pra testar sozinho ou completar a roda, quem criou a sala pode **adicionar bots** 🤖 no saguão. Eles jogam sozinhos, no aleatório.
+
 Mortos viram **almas penadas**: não falam mais, mas de noite podem deixar uma palavra na porta de uma casa.
 A vila vence se expulsar todos os assassinos. Os assassinos vencem quando forem tantos quanto o resto.
 
