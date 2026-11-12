@@ -1,0 +1,9 @@
+{
+  "name": "Mistério no CTG",
+  "short_name": "Mistério CTG",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#2a190d",
+  "theme_color": "#3b2414",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
