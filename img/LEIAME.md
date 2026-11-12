@@ -1,9 +1,8 @@
-# Fundo do mapa (opcional)
+# Fundo do mapa
 
-Coloque aqui duas imagens e o mapa passa a usá-las como fundo:
+- `mapa-dia.webp`: usada de manhã (na repetição do caminho)
+- `mapa-noite.webp`: usada de noite
 
-- `mapa-dia.jpg`: usada de manhã (na repetição do caminho)
-- `mapa-noite.jpg`: usada de noite
-
-Formato retrato 3:4 (ex.: 1080×1440), praça bem no centro, sem casas e sem texto.
-Se as imagens não existirem, o app desenha o mapa sozinho.
+Feitas no Gemini. Formato retrato 3:4, praça no centro e anel de estrada vazio.
+O app também aceita `.jpg` ou `.png` com esses nomes. Sem as imagens, o app desenha o mapa sozinho.
+Se trocar por outra imagem com o anel em outro lugar, ajuste `GEO.fundo` em `mapa.js`.

@@ -6,18 +6,25 @@
 // ============================================================
 
 const MAPA = (() => {
-  const W = 360, H = 440, C = { x: 180, y: 222 };
-  const RX = 128, RY = 168;
+  const W = 360, H = 440;
+  // geometria padrão (desenho próprio) e a que encaixa no anel de estrada da imagem de fundo
+  const GEO = { normal: { C: { x: 180, y: 222 }, RX: 128, RY: 168 }, fundo: { C: { x: 180, y: 226 }, RX: 140, RY: 150 } };
+  let C = GEO.normal.C, RX = GEO.normal.RX, RY = GEO.normal.RY;
+  const usarGeo = o => { const g = FUNDO[o.noite ? 'noite' : 'dia'] ? GEO.fundo : GEO.normal; C = g.C; RX = g.RX; RY = g.RY; };
   let anim = { key: '', raf: 0 };
 
   // ---------- imagem de fundo opcional (feita no Gemini, por exemplo) ----------
   const FUNDO = { dia: null, noite: null };
   const api = { onFundo: null };
   ['dia', 'noite'].forEach(k => {
-    const src = `img/mapa-${k}.jpg`;
-    const im = new Image();
-    im.onload = () => { FUNDO[k] = src; if (api.onFundo) api.onFundo(); };
-    im.src = src;
+    const tenta = exts => {
+      if (!exts.length) return;
+      const src = `img/mapa-${k}.${exts[0]}`, im = new Image();
+      im.onload = () => { FUNDO[k] = src; if (api.onFundo) api.onFundo(); };
+      im.onerror = () => tenta(exts.slice(1));
+      im.src = src;
+    };
+    tenta(['webp', 'jpg', 'png']);
   });
 
   // ---------- geometria ----------
@@ -56,6 +63,7 @@ const MAPA = (() => {
    * o: { id, jogadores, meId, sel, clicavel(j), pronto, modo: 'anda'|'olha'|'parado', vistos:[ids], noite, chave }
    */
   function svg(o) {
+    usarGeo(o);
     const id = o.id || 'mapa';
     const js = o.jogadores, n = js.length;
     const meIdx = js.findIndex(j => j.id === o.meId);
@@ -111,7 +119,7 @@ const MAPA = (() => {
         ${[10, 12, 15].map(r => `<clipPath id="${id}-c${r}"><circle r="${r}"/></clipPath>`).join('')}
       </defs>
       ${cenario}
-      <text class="fogo" x="${C.x}" y="${C.y + 10}">🔥</text>
+      ${fundo ? '' : `<text class="fogo" x="${C.x}" y="${C.y + 10}">🔥</text>`}
       <line class="olhar" id="${id}-olhar" x1="0" y1="0" x2="0" y2="0" style="display:none"/>
       ${casas}
       ${vis}
@@ -121,6 +129,7 @@ const MAPA = (() => {
 
   // ---------- animação ----------
   function animar(o) {
+    usarGeo(o);
     const id = o.id || 'mapa';
     const root = document.getElementById(id); if (!root) return;
     const js = o.jogadores, n = js.length;
@@ -142,12 +151,14 @@ const MAPA = (() => {
     // quem estava na casa aparece em roda, um pouco à frente da porta
     const mostrarVistos = idx => {
       const g = root.querySelector('.vistos'); if (!g) return;
-      const c = porta(idx, n, 94);
-      const vs = [...g.querySelectorAll('.vis')];
-      const r = vs.length > 1 ? 20 + vs.length * 4 : 0;
+      const casaP = pos(idx, n);
+      const a0 = Math.atan2(C.y - casaP.y, C.x - casaP.x); // direção da praça
+      const vs = [...g.querySelectorAll('.vis')], m = vs.length;
+      const passo = m > 4 ? 0.42 : 0.58;
       vs.forEach((v, k) => {
-        const a = (2 * Math.PI * k) / vs.length - Math.PI / 2;
-        v.setAttribute('transform', `translate(${(c.x + r * Math.cos(a)).toFixed(1)},${(c.y + r * Math.sin(a)).toFixed(1)})`);
+        const a = a0 + (k - (m - 1) / 2) * passo;
+        const r = 98 + (m > 4 && k % 2 ? 32 : 0);
+        v.setAttribute('transform', `translate(${(casaP.x + r * Math.cos(a)).toFixed(1)},${(casaP.y + r * Math.sin(a)).toFixed(1)})`);
       });
       g.classList.add('show');
     };
