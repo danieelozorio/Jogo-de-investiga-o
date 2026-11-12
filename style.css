@@ -152,3 +152,47 @@ button.chip { cursor: pointer; }
 .loc-row { padding: 6px 0; border-bottom: 1px dashed #6b4a30; }
 .loc-row:last-child { border: 0; }
 details summary { cursor: pointer; font-weight: 600; }
+
+/* ---- versão em roda ---- */
+.seat { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--amarelo); color: var(--tinta); font: 700 .85rem 'Lora', serif; flex: none; }
+.btn .seat { margin-right: 6px; }
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 12px 0; }
+.bigcard { background: var(--papel); color: var(--tinta); border-radius: 14px; border: 3px solid var(--amarelo); padding: 12px 8px; text-align: center; box-shadow: 0 3px 0 rgba(0,0,0,.4); }
+.bigcard.t-s { border-color: #a3456b; }
+.bigcard.t-a { border-color: var(--vermelho); }
+.bigcard.t-l { border-color: var(--verde); }
+.bc-t { font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.bc-i { font-size: 3rem; line-height: 1.2; }
+.bc-n { font-family: 'Rye', serif; font-size: 1.1rem; }
+.cardbtn { background: none; border: 0; padding: 0; text-align: inherit; font: inherit; }
+.overlay { position: fixed; inset: 0; z-index: 10; background: rgba(20,12,6,.96); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
+.overlay .bigcard { width: min(320px, 90vw); padding: 28px 12px; }
+.overlay .bc-i { font-size: 6rem; }
+.overlay .bc-n { font-size: 1.8rem; }
+.overlay .btn { max-width: 320px; margin-top: 24px; }
+.says { font-style: italic; font-size: 1.05rem; }
+.resp { background: #4a2f1c; border: 1px solid #6b4a30; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+.resp .row { margin-top: 6px; }
+.resp .btn.small { flex: 1; margin: 0; }
+.resp.off { opacity: .45; }
+.resp .inp { margin-top: 6px; }
+.hist { padding: 10px 12px; font-size: .92rem; }
+.sheet-wrap { overflow-x: auto; margin: 0 -4px; }
+.sheet { width: 100%; border-collapse: collapse; background: var(--papel); color: var(--tinta); border-radius: 12px; overflow: hidden; font-size: .85rem; }
+.sheet th { background: var(--couro); color: var(--amarelo); padding: 6px 2px; font-weight: 700; min-width: 30px; }
+.sheet th.meh { background: var(--verde); color: #fff; }
+.sheet td { border-bottom: 1px solid var(--line); padding: 0; }
+.sheet .gh td { background: var(--papel2); font-weight: 700; padding: 6px 8px; }
+.sheet .cn { padding: 7px 6px; white-space: nowrap; }
+.sheet .cl { text-align: center; width: 32px; height: 34px; border-left: 1px solid var(--line); cursor: pointer; font-weight: 700; user-select: none; }
+.sheet .cl.v1 { color: var(--verde); background: #dcefe0; }
+.sheet .cl.v2 { color: var(--vermelho); }
+.sheet .cl.v3 { color: #b07a10; }
+.sheet .cl.auto { background: #e2d5b8; cursor: default; }
+.sheet .cl.auto.v1 { background: #b9dcc1; }
+.sheet tr.out .cn { text-decoration: line-through; opacity: .5; }
+.sheet tr.sol .cn { background: #ffe9a8; font-weight: 700; }
+.sheet { font-size: .8rem; }
+.sheet .cn { white-space: normal; padding: 6px 4px; line-height: 1.15; }
+.sheet th { min-width: 0; width: 28px; padding: 6px 0; }
+.sheet .cl { width: 28px; height: 32px; }

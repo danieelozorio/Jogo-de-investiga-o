@@ -1,33 +1,27 @@
-# 🧉 Mistério no CTG: O Sumiço da Cuia de Prata
+# 🔍 Mistério no CTG
 
-Jogo de investigação pra jogar com a turma do CTG, **cada um no seu celular, todos na mesma roda**.
-Os personagens são vocês mesmos, com cargos do CTG sorteados (Patrão/Patroa, Gaiteiro(a), Prenda Laçadora, Posteiro(a) da Cozinha…).
+Jogo de dedução pra jogar **sentados em roda, de 6 a 8 pessoas, cada um no seu celular**.
+Um crime aconteceu no CTG e os suspeitos são vocês. Descubram **quem** foi, **com qual arma** e **em que lugar**.
 
-Não precisa de servidor nem de instalação: é uma página web. O anfitrião sorteia o caso, manda o link no grupo
-e todos os celulares montam **exatamente o mesmo caso** a partir dele.
+- **Suspeitos:** os próprios jogadores
+- **Armas:** Cuia, Xis, Espora, Bomba de chimarrão, Laço, Boleadeira, Espeto, Garrafa térmica, Gaita
+- **Locais:** Salão de Baile, Cozinha, Galpão, Churrasqueira, Bar, Palco, Mangueira, Secretaria, Estacionamento
+
+Não precisa de servidor: o anfitrião sorteia a partida, manda o link no grupo e todos os celulares montam a mesma partida.
 
 ## Como colocar no ar (GitHub Pages, grátis)
-1. No GitHub: **Settings → Pages → Branch** e escolha a branch do jogo, pasta `/ (root)`.
-2. Espere 1 minuto. O jogo fica em `https://<seu-usuario>.github.io/Jogo-de-investiga-o/`.
-3. No celular, dá pra usar "Adicionar à tela inicial" e abrir como app.
+1. No GitHub: **Settings → Pages → Branch**, escolha a branch do jogo e a pasta `/ (root)`.
+2. Em cerca de 1 minuto o jogo fica em `https://<seu-usuario>.github.io/Jogo-de-investiga-o/`.
 
 Pra testar no computador: `python3 -m http.server` na pasta e abra `http://localhost:8000`.
 
-## Como jogar (resumo)
-- **4 a 8 jogadores.** Um deles é o culpado, e só ele sabe.
-- **Inocente não mente** (pode dizer "não digo, tchê"). **O culpado pode mentir.**
-- **Pista só vale com código** (ex.: `CUIA-7K2`). Quem recebe digita na Caderneta e o app confirma com o **Selo do CTG**.
-  ⚠️ O culpado tem **pistas falsas com selo autêntico**.
-- **Roda de Chimarrão:** rodadas com um evento sorteado (Vanerão, Chula, Laçaço…) e cronômetro. A cuia passa pra direita.
-- **Ida ao Galpão:** 1x por partida, chame alguém pra conversar a sós. Cada um mostra 1 pista.
-- **Julgamento no Fogo de Chão:** todos votam em segredo e viram o celular juntos. Depois: "Revelar a verdade".
-- **Missão de Galpão:** objetivo secreto bobo que vale +1 ponto.
+## Como jogar
+1. O anfitrião cria a partida com os nomes **na ordem em que estão sentados** e manda o link.
+2. Cada um abre o link, escolhe o próprio nome e vê as suas cartas (secretas). Essas cartas não são a resposta.
+3. **Na sua vez**, faça um palpite em voz alta: "Acho que foi *Fulano*, com *a Cuia*, *na Cozinha*."
+4. O jogador à esquerda abre **Responder** e marca as três cartas. O app mostra quais ele tem; ele escolhe **uma** e mostra a tela só pra quem perguntou. Se não tiver nenhuma, passa pro próximo da roda.
+5. Todos podem registrar o palpite na aba **Palpite**. A **Caderneta** se preenche sozinha.
+6. Quando achar que sabe a resposta, use **Acusar** (só uma vez!). Acertou, venceu. Errou, continua só mostrando cartas.
 
 ## Personalizar
-Tudo de conteúdo fica em `data.js`: cargos e motivos, locais, textos das pistas, eventos da roda e missões.
-Troque à vontade pra colocar piadas internas da invernada!
-
-## Arquivos
-- `index.html`, `style.css`: página e visual
-- `data.js`: conteúdo do jogo
-- `app.js`: sorteio do caso (com semente), telas, caderneta, cronômetro e julgamento
+Armas e locais ficam em `data.js`. Dá pra trocar por piadas internas da turma.
