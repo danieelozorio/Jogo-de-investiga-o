@@ -232,9 +232,23 @@ function telaLobby(el) {
         <button class="btn small alt" id="cp">📋 Copiar link</button>
       </div>
     </div>
+    <div class="card paper foto-box">
+      ${avatar(js.find(j => j.id === me.id), 72)}
+      <div>
+        <b>Sua foto</b>
+        <p class="small muted">Aparece na sua bolinha no mapa, pra todo mundo da sala.</p>
+        <div class="row wrap">
+          <button class="btn small" id="f-cam">📷 Tirar foto</button>
+          <button class="btn small alt" id="f-gal">🖼️ Galeria</button>
+          ${js.find(j => j.id === me.id).foto ? '<button class="btn ghost small" id="f-rm">🗑️ Remover</button>' : ''}
+        </div>
+        <input type="file" accept="image/*" capture="user" id="in-cam" hidden>
+        <input type="file" accept="image/*" id="in-gal" hidden>
+      </div>
+    </div>
     <h3 class="sec">Na roda (${js.length})</h3>
     <div class="card">${js.map((j, i) => `
-      <div class="loc-row"><span class="seat">${i + 1}</span> ${j.bot ? '🤖 ' : ''}${esc(j.nome)}${j.id === me.id ? ' <span class="tag">você</span>' : ''}${i === 0 ? ' <span class="tag">anfitrião</span>' : ''}
+      <div class="loc-row"><span class="seat">${i + 1}</span> ${avatar(j, 34)} ${esc(j.nome)}${j.id === me.id ? ' <span class="tag">você</span>' : ''}${i === 0 ? ' <span class="tag">anfitrião</span>' : ''}
         ${me.host && j.id !== me.id ? `<button class="x rm" data-id="${j.id}" aria-label="Remover">✕</button>` : ''}</div>`).join('')}
     </div>
     ${me.host && js.length < 12 ? `<button class="btn ghost" id="bot">🤖 Adicionar bot</button>
@@ -249,6 +263,14 @@ function telaLobby(el) {
   $$('.rm').forEach(b => b.onclick = () => { if (confirm('Remover essa pessoa da sala?')) act('jg_remover', { p_id: +b.dataset.id }); });
   if ($('#start')) $('#start').onclick = () => act('jg_comecar', {});
   if ($('#bot')) $('#bot').onclick = () => act('jg_add_bot', {}, 'Bot adicionado 🤖');
+  $('#f-cam').onclick = () => $('#in-cam').click();
+  $('#f-gal').onclick = () => $('#in-gal').click();
+  if ($('#f-rm')) $('#f-rm').onclick = () => act('jg_foto', { p_foto: null }, 'Foto removida');
+  ['#in-cam', '#in-gal'].forEach(sel => $(sel).onchange = async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try { toast('Preparando a foto…'); await act('jg_foto', { p_foto: await fotoDoArquivo(f) }, 'Foto salva 📸'); }
+    catch (err) { alert('Não deu pra usar essa foto. Tenta outra.'); }
+  });
   $('#rules2').onclick = () => { stopPoll(); renderRules(() => entrarNoJogo()); };
 }
 
@@ -257,7 +279,7 @@ function casas(list, sel, opts = {}) {
     const mine = j.id === S.me.id;
     const dis = !j.vivo && !opts.mortasOk;
     return `<button class="casa ${sel === j.id ? 'on' : ''} ${j.vivo ? '' : 'morta'} ${mine ? 'minha' : ''}" data-id="${j.id}" ${dis ? 'disabled' : ''}>
-      <span class="casa-ic">${j.vivo ? (mine ? '🏡' : '🏠') : '🏚️'}</span>
+      <span class="casa-ic">${j.foto || j.bot ? avatar(j, 46) : (j.vivo ? (mine ? '🏡' : '🏠') : '🏚️')}</span>
       <span class="casa-n">${mine ? 'Sua casa' : esc(j.nome)}</span>
       ${opts.pronto && j.vivo && j.pronto ? '<span class="pronto">✓</span>' : ''}
     </button>`;
@@ -344,12 +366,12 @@ const ANDA = new Set(['morador', 'assassino', 'benzedeira']);
 const nomeDe = id => (S.jogadores.find(j => j.id === id) || {}).nome || '?';
 function mapaNoite(sel) {
   const me = S.me;
-  return { id: 'mapa', jogadores: S.jogadores, meId: me.id, sel, pronto: true, chave: S.sala.dia,
+  return { id: 'mapa', jogadores: S.jogadores, meId: me.id, sel, pronto: true, chave: S.sala.dia, noite: true,
     modo: ANDA.has(me.papel) ? 'anda' : 'olha',
     clicavel: j => j.vivo && !(me.papel === 'fofoqueira' && j.id === me.id) };
 }
 function mapaGhost() {
-  return { id: 'mapa', jogadores: S.jogadores, meId: S.me.id, sel: UI.alvo ?? S.me.alvo, chave: S.sala.dia,
+  return { id: 'mapa', jogadores: S.jogadores, meId: S.me.id, sel: UI.alvo ?? S.me.alvo, chave: S.sala.dia, noite: true,
     modo: 'olha', clicavel: () => true };
 }
 function mapaReplay() {
@@ -447,6 +469,29 @@ function timerBind() {
   $('#t-rs').onclick = () => { clearInterval(T.id); T.run = false; T.left = 180; draw(); };
   draw();
 }
+
+// ---------- fotos ----------
+function avatar(j, px) {
+  if (!j) return '';
+  const st = `width:${px}px;height:${px}px;font-size:${Math.round(px * 0.42)}px`;
+  if (j.foto) return `<img class="av" src="${j.foto}" alt="" style="${st}">`;
+  return `<span class="av" style="${st}">${j.bot ? '🤖' : esc(String(j.nome).slice(0, 2))}</span>`;
+}
+// corta um quadrado (puxando pro rosto, que costuma ficar mais pra cima) e deixa leve
+async function fotoDoArquivo(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = url; });
+    const w = img.naturalWidth, h = img.naturalHeight, lado = Math.min(w, h);
+    const sx = (w - lado) / 2, sy = h > w ? (h - lado) * 0.3 : (h - lado) / 2;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 160;
+    cv.getContext('2d').drawImage(img, sx, sy, lado, lado, 0, 0, 160, 160);
+    let q = 0.8, data;
+    do { data = cv.toDataURL('image/jpeg', q); q -= 0.1; } while (data.length > 45000 && q > 0.3);
+    return data;
+  } finally { URL.revokeObjectURL(url); }
+}
+MAPA.onFundo = () => { if (S && SESS && $('#tela')) render(); };
 
 // ---------- utilidades ----------
 function copy(text, btn) {

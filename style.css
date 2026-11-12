@@ -128,33 +128,54 @@ p { margin: .5em 0; }
 details summary { cursor: pointer; font-weight: 600; }
 
 /* ---- mapa da vila ---- */
-.mapa { display: block; width: 100%; max-width: 440px; margin: 10px auto; user-select: none; -webkit-user-select: none; }
-.mapa .chao { fill: #3d5a2a; }
-body.f-noite .mapa .chao { fill: #16233a; }
+.mapa { display: block; width: 100%; max-width: 440px; margin: 10px auto; user-select: none; -webkit-user-select: none; border-radius: 22px; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.mapa .g0 { stop-color: #6f9a45; } .mapa .g1 { stop-color: #3f6326; }
+.mapa.noite .g0 { stop-color: #253a52; } .mapa.noite .g1 { stop-color: #0f1a2c; }
+.mapa .tufos path { fill: none; stroke: #2f4d1c; stroke-width: 1.4; stroke-linecap: round; opacity: .6; }
+.mapa.noite .tufos path { stroke: #0b1424; }
 .mapa .estrelas circle { fill: #fff; opacity: 0; }
-body.f-noite .mapa .estrelas circle { opacity: .55; }
-.mapa .estrada { fill: none; stroke: #a0784a; stroke-width: 9; stroke-linecap: round; opacity: .75; }
-body.f-noite .mapa .estrada { stroke: #4a4f6e; }
-.mapa .praca { fill: #c49a5c; stroke: #8a6a3b; stroke-width: 3; }
-body.f-noite .mapa .praca { fill: #3b3f5c; stroke: #6a6f99; }
-.mapa .fogo { font-size: 26px; text-anchor: middle; }
+.mapa.noite .estrelas circle { opacity: .6; }
+.mapa .anel { fill: none; stroke: #b48a57; stroke-width: 12; opacity: .8; }
+.mapa .estrada { stroke: #b48a57; stroke-width: 8; stroke-linecap: round; opacity: .75; }
+.mapa.noite .anel, .mapa.noite .estrada { stroke: #4b5578; }
+.mapa .praca { fill: #c9a26b; stroke: #8a6a3b; stroke-width: 3; stroke-dasharray: 5 3; }
+.mapa .praca-in { fill: #a37d4a; }
+.mapa.noite .praca { fill: #3e4566; stroke: #6c739e; }
+.mapa.noite .praca-in { fill: #4a3424; }
+.mapa .enfeites text, .mapa .astro { text-anchor: middle; }
+.mapa .astro { font-size: 30px; }
+.mapa.noite .enfeites { opacity: .55; }
+.mapa .fogo { font-size: 28px; text-anchor: middle; }
+.mapa.noite .fogo { filter: drop-shadow(0 0 8px #ffb347); }
 .mapa .casa-m { cursor: pointer; }
 .mapa .casa-m.off { cursor: default; }
-.mapa .casa-m .hl { fill: rgba(255,255,255,.08); stroke: rgba(255,255,255,.25); stroke-width: 2; transition: fill .2s; }
+.mapa .casa-m .luz { fill: #ffd56b; opacity: .18; }
+.mapa .casa-m .hl { fill: rgba(255,255,255,.12); stroke: rgba(255,255,255,.35); stroke-width: 2; }
 .mapa .casa-m.on .hl { fill: var(--amarelo); stroke: #fff; stroke-width: 3; }
 .mapa .casa-m.morta { opacity: .5; }
-.mapa .casa-m .ic { font-size: 30px; text-anchor: middle; }
-.mapa .casa-m .nm { font: 700 13px 'Lora', serif; fill: #fff; text-anchor: middle; paint-order: stroke; stroke: rgba(0,0,0,.65); stroke-width: 3px; }
+.mapa .casa-m .ic { font-size: 31px; text-anchor: middle; }
+.mapa .nm, .mapa .vn { font: 700 13px 'Lora', serif; fill: #fff; text-anchor: middle; paint-order: stroke; stroke: rgba(0,0,0,.7); stroke-width: 3px; }
+.mapa .vn { font-size: 10.5px; }
 .mapa .casa-m.on .nm { fill: var(--amarelo); }
 .mapa .casa-m .ok { font: 700 15px 'Lora', serif; fill: #4cd27a; paint-order: stroke; stroke: #000; stroke-width: 2px; }
-.mapa .eu circle { fill: #fff; stroke: var(--vermelho); stroke-width: 3; }
-.mapa .eu text { font-size: 17px; text-anchor: middle; }
+.mapa .aro { fill: #fff; }
+.mapa .bg { fill: var(--amarelo); }
+.mapa .ini { font-weight: 700; font-family: 'Lora', serif; text-anchor: middle; fill: var(--tinta); }
+.mapa .eu .aro { fill: var(--vermelho); }
+.mapa .eu .bg { fill: #fff; }
+.mapa .eu .anda { font-size: 18px; text-anchor: middle; }
+.mapa .eu-n { fill: #ffe6a6; }
 .mapa .olhar { stroke: var(--amarelo); stroke-width: 3; stroke-dasharray: 6 7; opacity: .9; }
 .mapa .olhar.anima { animation: olhar 1.2s ease-out; }
 @keyframes olhar { from { stroke-dashoffset: 300; opacity: 0; } to { stroke-dashoffset: 0; opacity: .9; } }
-.mapa .vistos { opacity: 0; transition: opacity .5s; }
+.mapa .vistos { opacity: 0; transition: opacity .6s; }
 .mapa .vistos.show { opacity: 1; }
-.mapa .vis circle { fill: var(--amarelo); stroke: #000; stroke-width: 1.5; }
-.mapa .vis text { font: 700 11px 'Lora', serif; text-anchor: middle; fill: var(--tinta); }
+.mapa.com-fundo .casa-m .hl { fill: rgba(0,0,0,.25); }
 .escolha { min-height: 1.4em; }
-.secret .mapa { margin-top: 4px; }
+.secret .mapa { margin-top: 6px; }
+
+/* fotos */
+.av { display: inline-grid; place-items: center; border-radius: 50%; object-fit: cover; background: var(--amarelo); color: var(--tinta); font-weight: 700; border: 2px solid #fff; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.foto-box { display: flex; gap: 14px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.casa .casa-ic .av { margin: 2px 0; }

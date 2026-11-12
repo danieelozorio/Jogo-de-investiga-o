@@ -38,6 +38,7 @@ create table if not exists public.jogadores (
 create index if not exists jogadores_sala_idx on public.jogadores(sala);
 alter table public.jogadores add column if not exists bot boolean not null default false;
 alter table public.jogadores add column if not exists visto jsonb;
+alter table public.jogadores add column if not exists foto text;
 
 alter table public.salas enable row level security;
 alter table public.jogadores enable row level security;
@@ -295,7 +296,7 @@ begin
   me := _jg_me(p_code, p_token);
   select * into s from salas where code = me.sala;
   select json_agg(json_build_object(
-      'id', j.id, 'nome', j.nome, 'vivo', j.vivo, 'bot', j.bot,
+      'id', j.id, 'nome', j.nome, 'vivo', j.vivo, 'bot', j.bot, 'foto', j.foto,
       'pronto', case when s.fase = 'noite' then j.agiu when s.fase = 'dia' then j.votou else false end,
       'papel', case
         when s.fase = 'fim' then j.papel
@@ -314,6 +315,19 @@ begin
                             'alvo', me.alvo, 'palavra', me.palavra, 'agiu', me.agiu, 'voto', me.voto, 'votou', me.votou,
                             'info', me.info, 'visto', me.visto),
     'jogadores', lista);
+end $$;
+
+-- foto do rosto (já vem pequena e cortada pelo app)
+create or replace function public.jg_foto(p_code text, p_token uuid, p_foto text) returns void
+language plpgsql security definer set search_path = public as $$
+declare me jogadores;
+begin
+  me := _jg_me(p_code, p_token);
+  if p_foto is not null and (p_foto !~ '^data:image/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$' or length(p_foto) > 60000) then
+    raise exception 'Foto inválida ou grande demais.';
+  end if;
+  update jogadores set foto = p_foto where id = me.id;
+  perform _jg_bump(me.sala);
 end $$;
 
 create or replace function public.jg_remover(p_code text, p_token uuid, p_id bigint) returns void

@@ -17,6 +17,9 @@ Toda a lógica secreta roda no banco (Supabase). Nenhum celular, nem o de quem c
 
 Pra testar sozinho ou completar a roda, quem criou a sala pode **adicionar bots** 🤖 no saguão. Eles jogam sozinhos, no aleatório.
 
+Cada um pode colocar **uma foto do rosto** no saguão (tirar na hora ou escolher da galeria). Ela aparece na bolinha do mapa, com o nome embaixo.
+O fundo do mapa pode ser trocado por uma imagem: veja `img/LEIAME.md`.
+
 Mortos viram **almas penadas**: não falam mais, mas de noite podem deixar uma palavra na porta de uma casa.
 A vila vence se expulsar todos os assassinos. Os assassinos vencem quando forem tantos quanto o resto.
 
