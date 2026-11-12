@@ -276,11 +276,11 @@ function telaNoite(el) {
       <div class="card ghost-card"><h3>👻 Alma penada</h3>
       <p>Você pode deixar <b>uma palavra</b> na porta de uma casa. A vila inteira vai ver de manhã.</p>
       <p class="small muted">Deixe o recado antes de os vivos terminarem de escolher.</p></div>
-      ${casas(js, UI.alvo ?? me.alvo, { mortasOk: true })}
+      ${MAPA.svg(mapaGhost())}
       <input id="pal" class="inp" maxlength="20" placeholder="Uma palavra (ex.: mentira)" value="${esc(UI.pal ?? me.palavra ?? '')}">
       <button class="btn big" id="ok">✍️ Deixar recado</button>
       ${me.agiu ? '<p class="ok center">Recado deixado.</p>' : ''}${espera}${forcar}`;
-    $$('.casa').forEach(b => b.onclick = () => { UI.alvo = +b.dataset.id; UI.pal = $('#pal').value; render(); });
+    MAPA.bind(mapaGhost(), id => { UI.alvo = id; UI.pal = $('#pal').value; render(); });
     $('#pal').oninput = e => UI.pal = e.target.value;
     $('#ok').onclick = () => {
       const alvo = UI.alvo ?? me.alvo;
@@ -294,7 +294,6 @@ function telaNoite(el) {
   const p = PAPEIS[me.papel];
   const parceiros = me.papel === 'assassino' ? js.filter(j => j.papel === 'assassino' && j.id !== me.id) : [];
   const sel = UI.alvo ?? me.alvo;
-  const lista = me.papel === 'fofoqueira' ? js.filter(j => j.id !== me.id) : js;
   el.innerHTML = `
     <div class="card role ${p.mal ? 'mal' : ''}">
       <div class="role-ic">${p.icon}</div>
@@ -303,10 +302,11 @@ function telaNoite(el) {
     </div>
     <h3 class="sec center">${p.acao}</h3>
     ${p.casa ? `<p class="muted center small">Tocar em <b>Sua casa</b> = ${p.casa.toLowerCase()}.</p>` : ''}
-    ${casas(lista, sel, { pronto: true })}
+    ${MAPA.svg(mapaNoite(sel))}
+    <p class="center small escolha">${sel ? (sel === me.id ? `🏡 ${p.casa || 'Sua casa'}` : `${ANDA.has(me.papel) ? '🚶 Indo até a casa de' : '👁️ De olho em'} <b>${esc(nomeDe(sel))}</b>`) : 'Toque numa casa do mapa.'}</p>
     <button class="btn big" id="ok" ${sel ? '' : 'disabled'}>${me.agiu && sel === me.alvo ? '✅ Escolha feita (pode trocar)' : '✔️ Confirmar'}</button>
     ${espera}${forcar}`;
-  $$('.casa').forEach(b => b.onclick = () => { UI.alvo = +b.dataset.id; render(); });
+  MAPA.bind(mapaNoite(sel), id => { UI.alvo = id; render(); });
   $('#ok').onclick = () => { if (sel) act('jg_agir', { p_alvo: sel, p_palavra: null }, 'Escolha feita 🌙'); };
   bindForce();
 }
@@ -330,10 +330,33 @@ function infoPrivada() {
   if (!info.length) return '';
   return `<div class="card secret">
     <button class="btn ghost small" id="verInfo">${UI.verInfo ? '🙈 Esconder' : '🤫 O que você viu esta noite'}</button>
+    ${UI.verInfo && S.me.visto ? MAPA.svg(mapaReplay()) : ''}
     ${UI.verInfo ? info.map(t => `<p>${esc(t)}</p>`).join('') : ''}
   </div>`;
 }
-function bindInfo() { const b = $('#verInfo'); if (b) b.onclick = () => { UI.verInfo = !UI.verInfo; render(); }; }
+function bindInfo() {
+  const b = $('#verInfo'); if (b) b.onclick = () => { UI.verInfo = !UI.verInfo; render(); };
+  if (UI.verInfo && S.me.visto) MAPA.bind(mapaReplay(), () => {});
+}
+
+// ---------- configurações do mapa ----------
+const ANDA = new Set(['morador', 'assassino', 'benzedeira']);
+const nomeDe = id => (S.jogadores.find(j => j.id === id) || {}).nome || '?';
+function mapaNoite(sel) {
+  const me = S.me;
+  return { id: 'mapa', jogadores: S.jogadores, meId: me.id, sel, pronto: true, chave: S.sala.dia,
+    modo: ANDA.has(me.papel) ? 'anda' : 'olha',
+    clicavel: j => j.vivo && !(me.papel === 'fofoqueira' && j.id === me.id) };
+}
+function mapaGhost() {
+  return { id: 'mapa', jogadores: S.jogadores, meId: S.me.id, sel: UI.alvo ?? S.me.alvo, chave: S.sala.dia,
+    modo: 'olha', clicavel: () => true };
+}
+function mapaReplay() {
+  const v = S.me.visto;
+  return { id: 'replay', jogadores: S.jogadores, meId: S.me.id, sel: v.casa, vistos: v.ids || [], chave: 'r' + S.sala.dia,
+    modo: v.casa === S.me.id ? 'parado' : 'anda' };
+}
 function papeisVisiveis() {
   return `<div class="card">${S.jogadores.map(j => `<div class="loc-row">${j.vivo ? '🙂' : '💀'} <b>${esc(j.nome)}</b>${j.papel ? ` — ${PAPEIS[j.papel].icon} ${PAPEIS[j.papel].nome}` : ''}</div>`).join('')}</div>`;
 }

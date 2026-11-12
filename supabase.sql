@@ -37,6 +37,7 @@ create table if not exists public.jogadores (
 );
 create index if not exists jogadores_sala_idx on public.jogadores(sala);
 alter table public.jogadores add column if not exists bot boolean not null default false;
+alter table public.jogadores add column if not exists visto jsonb;
 
 alter table public.salas enable row level security;
 alter table public.jogadores enable row level security;
@@ -96,6 +97,7 @@ declare
   dono jogadores;
   h bigint;
   ids bigint[];
+  ids_casa bigint[];
   mortos bigint[] := '{}';
   casas_ataque bigint[] := '{}';
   salvos int := 0;
@@ -131,6 +133,7 @@ begin
     h := _jg_loc(j);
     select array_agg(q.id) into ids from jogadores q
       where q.sala = p_code and q.vivo and q.id <> j.id and _jg_loc(q) = h;
+    ids_casa := ids;
     if h = j.id then
       if ids is null then msgs := msgs || to_jsonb('🏠 Você passou a noite em casa. Ninguém apareceu por aqui.'::text);
       else msgs := msgs || to_jsonb('🏠 Você passou a noite em casa. Passaram por aqui: ' || _jg_nomes(ids) || '.'); end if;
@@ -188,7 +191,9 @@ begin
     if j.id = any(mortos) then
       msgs := msgs || to_jsonb('💀 Você foi atacado(a) esta noite. Agora é alma penada: não pode falar, mas de noite pode deixar uma palavra numa casa.'::text);
     end if;
-    update jogadores set info = msgs where id = j.id;
+    update jogadores set info = msgs,
+      visto = jsonb_build_object('casa', _jg_loc(j), 'ids', coalesce(to_jsonb(ids_casa), '[]'::jsonb))
+      where id = j.id;
   end loop;
 
   -- 3) recados das almas penadas
@@ -200,7 +205,8 @@ begin
   for j in select * from jogadores where id = any(mortos) order by ordem loop
     mortos_json := mortos_json || jsonb_build_object('nome', j.nome, 'arma', armas[1 + floor(random() * array_length(armas, 1))::int]);
   end loop;
-  update jogadores set vivo = false where id = any(mortos);
+  update jogadores set vivo = false, visto = null where id = any(mortos);
+  update jogadores set visto = null where sala = p_code and not vivo;
   update jogadores set agiu = false, alvo = null, palavra = null, voto = null, votou = false where sala = p_code;
   update jogadores set info = '[]'::jsonb where sala = p_code and not vivo and not (id = any(mortos));
 
@@ -306,7 +312,7 @@ begin
     'me', json_build_object('id', me.id, 'nome', me.nome, 'vivo', me.vivo, 'host', s.host_token = me.token,
                             'papel', case when me.papel = 'bebado' and s.fase <> 'fim' then 'vigia' else me.papel end,
                             'alvo', me.alvo, 'palavra', me.palavra, 'agiu', me.agiu, 'voto', me.voto, 'votou', me.votou,
-                            'info', me.info),
+                            'info', me.info, 'visto', me.visto),
     'jogadores', lista);
 end $$;
 
@@ -341,7 +347,7 @@ begin
   while array_length(papeis, 1) < n loop papeis := papeis || 'morador'::text; end loop;
   with p as (select id, row_number() over (order by random()) rn from jogadores where sala = me.sala)
   update jogadores j set papel = papeis[p.rn], vivo = true, alvo = null, palavra = null, agiu = false,
-    voto = null, votou = false, info = '[]'::jsonb
+    voto = null, votou = false, info = '[]'::jsonb, visto = null
   from p where j.id = p.id;
   update salas set fase = 'noite', dia = 1, vencedor = null, anuncio = jsonb_build_object('tipo', 'inicio') where code = me.sala;
   perform _jg_bots_noite(me.sala);

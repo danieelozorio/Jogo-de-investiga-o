@@ -126,3 +126,35 @@ p { margin: .5em 0; }
 
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 18px; border-radius: 99px; font-weight: 600; z-index: 20; box-shadow: 0 4px 16px rgba(0,0,0,.4); }
 details summary { cursor: pointer; font-weight: 600; }
+
+/* ---- mapa da vila ---- */
+.mapa { display: block; width: 100%; max-width: 440px; margin: 10px auto; user-select: none; -webkit-user-select: none; }
+.mapa .chao { fill: #3d5a2a; }
+body.f-noite .mapa .chao { fill: #16233a; }
+.mapa .estrelas circle { fill: #fff; opacity: 0; }
+body.f-noite .mapa .estrelas circle { opacity: .55; }
+.mapa .estrada { fill: none; stroke: #a0784a; stroke-width: 9; stroke-linecap: round; opacity: .75; }
+body.f-noite .mapa .estrada { stroke: #4a4f6e; }
+.mapa .praca { fill: #c49a5c; stroke: #8a6a3b; stroke-width: 3; }
+body.f-noite .mapa .praca { fill: #3b3f5c; stroke: #6a6f99; }
+.mapa .fogo { font-size: 26px; text-anchor: middle; }
+.mapa .casa-m { cursor: pointer; }
+.mapa .casa-m.off { cursor: default; }
+.mapa .casa-m .hl { fill: rgba(255,255,255,.08); stroke: rgba(255,255,255,.25); stroke-width: 2; transition: fill .2s; }
+.mapa .casa-m.on .hl { fill: var(--amarelo); stroke: #fff; stroke-width: 3; }
+.mapa .casa-m.morta { opacity: .5; }
+.mapa .casa-m .ic { font-size: 30px; text-anchor: middle; }
+.mapa .casa-m .nm { font: 700 13px 'Lora', serif; fill: #fff; text-anchor: middle; paint-order: stroke; stroke: rgba(0,0,0,.65); stroke-width: 3px; }
+.mapa .casa-m.on .nm { fill: var(--amarelo); }
+.mapa .casa-m .ok { font: 700 15px 'Lora', serif; fill: #4cd27a; paint-order: stroke; stroke: #000; stroke-width: 2px; }
+.mapa .eu circle { fill: #fff; stroke: var(--vermelho); stroke-width: 3; }
+.mapa .eu text { font-size: 17px; text-anchor: middle; }
+.mapa .olhar { stroke: var(--amarelo); stroke-width: 3; stroke-dasharray: 6 7; opacity: .9; }
+.mapa .olhar.anima { animation: olhar 1.2s ease-out; }
+@keyframes olhar { from { stroke-dashoffset: 300; opacity: 0; } to { stroke-dashoffset: 0; opacity: .9; } }
+.mapa .vistos { opacity: 0; transition: opacity .5s; }
+.mapa .vistos.show { opacity: 1; }
+.mapa .vis circle { fill: var(--amarelo); stroke: #000; stroke-width: 1.5; }
+.mapa .vis text { font: 700 11px 'Lora', serif; text-anchor: middle; fill: var(--tinta); }
+.escolha { min-height: 1.4em; }
+.secret .mapa { margin-top: 4px; }
