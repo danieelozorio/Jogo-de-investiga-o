@@ -1,9 +1,9 @@
 {
-  "name": "Mistério no CTG",
-  "short_name": "Mistério CTG",
+  "name": "Noite na Vila",
+  "short_name": "Noite na Vila",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#2a190d",
-  "theme_color": "#3b2414",
+  "background_color": "#0c1022",
+  "theme_color": "#141a2e",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

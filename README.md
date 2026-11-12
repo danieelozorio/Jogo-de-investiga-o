@@ -1,27 +1,34 @@
-# 🔍 Mistério no CTG
+# 🌙 Noite na Vila
 
-Jogo de dedução pra jogar **sentados em roda, de 6 a 8 pessoas, cada um no seu celular**.
-Um crime aconteceu no CTG e os suspeitos são vocês. Descubram **quem** foi, **com qual arma** e **em que lugar**.
+Jogo de dedução social pra jogar **sentados em roda, cada um no seu celular** (ideal: 6 a 8 pessoas, funciona de 5 a 12).
+De noite, cada um escolhe pelo celular **qual casa vai visitar**. De dia, a vila **debate cara a cara** e vota em quem expulsar.
 
-- **Suspeitos:** os próprios jogadores
-- **Armas:** Cuia, Xis, Espora, Bomba de chimarrão, Laço, Boleadeira, Espeto, Garrafa térmica, Gaita
-- **Locais:** Salão de Baile, Cozinha, Galpão, Churrasqueira, Bar, Palco, Mangueira, Secretaria, Estacionamento
+Toda a lógica secreta roda no banco (Supabase). Nenhum celular, nem o de quem criou a sala, sabe o papel dos outros.
 
-Não precisa de servidor: o anfitrião sorteia a partida, manda o link no grupo e todos os celulares montam a mesma partida.
+## Papéis
+| | Papel | O que faz de noite |
+|---|---|---|
+| 🔪 | Assassino (2 com 8+ jogadores) | Ataca uma casa. Se o dono estiver lá, morre. Quem estiver na casa vê o assassino. |
+| 👁️ | Vigia | Fica em casa e vê quem entrou numa casa. |
+| 🌿 | Benzedeira | Vai até uma casa e protege o dono de um ataque. |
+| 🗣️ | Fofoqueira (6+) | Fica em casa e descobre pra onde uma pessoa foi. |
+| 🍺 | Bêbado (7+) | Acha que é Vigia, mas vê coisa errada. |
+| 🏠 | Morador | Visita uma casa (ou fica na sua) e vê quem estava lá. |
 
-## Como colocar no ar (GitHub Pages, grátis)
-1. No GitHub: **Settings → Pages → Branch**, escolha a branch do jogo e a pasta `/ (root)`.
-2. Em cerca de 1 minuto o jogo fica em `https://<seu-usuario>.github.io/Jogo-de-investiga-o/`.
+Mortos viram **almas penadas**: não falam mais, mas de noite podem deixar uma palavra na porta de uma casa.
+A vila vence se expulsar todos os assassinos. Os assassinos vencem quando forem tantos quanto o resto.
 
-Pra testar no computador: `python3 -m http.server` na pasta e abra `http://localhost:8000`.
+## Como colocar no ar
+1. **Supabase:** crie um projeto em supabase.com. No **SQL Editor**, cole todo o conteúdo de `supabase.sql` e clique em **Run**.
+2. **Chaves:** em **Project Settings → API**, copie a *Project URL* e a chave *anon public* para o arquivo `config.js`.
+   Nunca use a chave `service_role`.
+3. **GitHub Pages:** em **Settings → Pages**, escolha a branch e a pasta `/ (root)`.
+4. Abra `https://<seu-usuario>.github.io/Jogo-de-investiga-o/`, crie a sala e mande o link no grupo.
 
-## Como jogar
-1. O anfitrião cria a partida com os nomes **na ordem em que estão sentados** e manda o link.
-2. Cada um abre o link, escolhe o próprio nome e vê as suas cartas (secretas). Essas cartas não são a resposta.
-3. **Na sua vez**, faça um palpite em voz alta: "Acho que foi *Fulano*, com *a Cuia*, *na Cozinha*."
-4. O jogador à esquerda abre **Responder** e marca as três cartas. O app mostra quais ele tem; ele escolhe **uma** e mostra a tela só pra quem perguntou. Se não tiver nenhuma, passa pro próximo da roda.
-5. Todos podem registrar o palpite na aba **Palpite**. A **Caderneta** se preenche sozinha.
-6. Quando achar que sabe a resposta, use **Acusar** (só uma vez!). Acertou, venceu. Errou, continua só mostrando cartas.
+> No plano grátis, o Supabase pausa o projeto depois de 1 semana sem uso. Antes de jogar, entre no painel e clique em **Restore**.
+> Salas paradas há mais de 2 dias são apagadas sozinhas.
 
-## Personalizar
-Armas e locais ficam em `data.js`. Dá pra trocar por piadas internas da turma.
+## Arquivos
+- `supabase.sql`: tabelas e regras do jogo (noite, votação, vitória)
+- `config.js`: URL e chave do seu Supabase
+- `index.html`, `app.js`, `style.css`: o app do celular
