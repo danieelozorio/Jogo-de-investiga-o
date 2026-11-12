@@ -17,7 +17,8 @@ const KEY = window.SUPABASE_KEY || 'mock';
 async function api(fn, body) {
   const r = await fetch(`${API}/rest/v1/rpc/${fn}`, {
     method: 'POST',
-    headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
+    // chave nova (sb_publishable_…) vai só no apikey; a antiga (JWT) também no Authorization
+    headers: { apikey: KEY, ...(KEY.startsWith('eyJ') ? { Authorization: `Bearer ${KEY}` } : {}), 'Content-Type': 'application/json' },
     body: JSON.stringify(body || {}),
   });
   const txt = await r.text();
