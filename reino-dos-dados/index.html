@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Reino dos Dados</title>
+  <meta name="description" content="Jogo de tabuleiro mágico: role os dados, compre terras, construa castelos e cobre pedágio dos rivais.">
+  <meta name="theme-color" content="#1b1140">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="menu" class="screen">
+    <h1>🎲 Reino dos Dados</h1>
+    <p class="sub">Role os dados, compre terras encantadas, construa castelos e faça os rivais pagarem pedágio.</p>
+
+    <div id="continueBox" class="hidden">
+      <button id="btnContinue" class="big">▶ Continuar partida salva</button>
+    </div>
+
+    <h2>Jogadores</h2>
+    <div id="seats"></div>
+
+    <h2>Partida</h2>
+    <div class="row">
+      <label>Rodadas
+        <select id="optRounds">
+          <option value="15">15 (rápida)</option>
+          <option value="25" selected>25</option>
+          <option value="40">40 (longa)</option>
+        </select>
+      </label>
+      <label>Velocidade dos bots
+        <select id="optSpeed">
+          <option value="1">Normal</option>
+          <option value="0.45">Rápida</option>
+        </select>
+      </label>
+    </div>
+
+    <button id="btnStart" class="big">✨ Começar</button>
+
+    <details class="rules">
+      <summary>Como jogar</summary>
+      <ul>
+        <li><b>Rolar:</b> o marcador da barra fica indo e voltando. Toque em <b>Rolar</b> quando ele estiver na zona que você quer (baixo, médio ou alto). A barra puxa o resultado pra lá, mas a sorte ainda manda.</li>
+        <li><b>Duplas</b> dão outra jogada. Três duplas seguidas mandam você pra <b>Ilha Perdida</b>.</li>
+        <li><b>Comprar:</b> ao parar numa terra livre, compre o terreno e já construa. Quanto mais voltas você deu, mais alto pode construir: 🚩 Terreno, 🏠 Casa, 🏘️ Vila, 🏰 Castelo.</li>
+        <li><b>Marco Encantado ✨:</b> volte a um Castelo seu para transformá-lo em Marco. Ele cobra o maior pedágio e <b>ninguém pode tomar</b>.</li>
+        <li><b>Pedágio:</b> parou na terra de outro, paga. Reino completo (as duas terras da mesma cor) cobra 50% a mais.</li>
+        <li><b>Tomar:</b> depois de pagar o pedágio você pode comprar a terra do rival pagando o dobro do que ele investiu.</li>
+        <li><b>Casas especiais:</b> 🔮 Carta Mágica, 🏝️ Ilha Perdida (fica presa até tirar dupla ou pagar), 🎪 Festival (escolha uma terra sua pra cobrar pedágio em dobro), 🌀 Portal (na próxima vez viaje pra onde quiser), 💰 Coletor do Rei (imposto de 10%).</li>
+        <li><b>Como vencer:</b> levar todos à falência, ou fazer um <b>Monopólio</b>: 3 reinos completos, um lado inteiro do tabuleiro ou as 4 atrações. Se acabarem as rodadas, vence quem tiver o maior patrimônio.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section id="game" class="screen hidden">
+    <header id="topbar">
+      <div id="players"></div>
+      <div class="tools">
+        <button id="btnMute" class="icon" title="Som">🔊</button>
+        <button id="btnQuit" class="icon" title="Sair">✕</button>
+      </div>
+    </header>
+    <div id="boardWrap">
+      <div id="board">
+        <div id="center">
+          <div class="ctitle">Reino dos Dados</div>
+          <div id="roundLbl" class="small"></div>
+          <div id="turnLbl"></div>
+          <div id="dice"><div class="die"></div><div class="die"></div></div>
+          <div id="gauge" class="hidden">
+            <div class="zones"><span>baixo</span><span>médio</span><span>alto</span></div>
+            <div class="bar"><div id="marker"></div></div>
+          </div>
+          <button id="btnRoll" class="hidden">🎲 Rolar</button>
+          <div id="pickMsg" class="hidden"></div>
+          <ul id="log"></ul>
+        </div>
+      </div>
+      <div id="toast" class="hidden"></div>
+    </div>
+  </section>
+
+  <div id="modal" class="hidden"><div id="modalCard"></div></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

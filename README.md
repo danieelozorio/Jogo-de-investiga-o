@@ -1,5 +1,7 @@
 # 🌙 Noite na Vila
 
+> Também neste repositório: **[🎲 Reino dos Dados](reino-dos-dados/)**, jogo de tabuleiro mágico com dados, terras e castelos.
+
 Jogo de dedução social pra jogar **sentados em roda, cada um no seu celular** (ideal: 6 a 8 pessoas, funciona de 5 a 12).
 De noite, cada um escolhe pelo celular **qual casa vai visitar**. De dia, a vila **debate cara a cara** e vota em quem expulsar.
 
