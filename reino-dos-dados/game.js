@@ -16,8 +16,8 @@ const ISLAND_FEE = 100;
 const ATTR_PRICE = 200;
 const ATTR_TOLL = 50;
 const TOLL_MULT = [0.3, 1, 2, 3.5, 5.5]; // por nível, multiplicado pelo preço do terreno
-const LVL_NAME = ['Terreno', 'Casa', 'Vila', 'Castelo', 'Marco Encantado'];
-const LVL_ICON = ['🚩', '🏠', '🏘️', '🏰', '✨'];
+const LVL_NAME = ['Terreno', 'Casa de Taipa', 'Vila Colonial', 'Casarão', 'Igreja Encantada'];
+const LVL_ICON = ['🚩', '🏠', '🏘️', '🏛️', '⛪'];
 const COLORS = ['#b3261e', '#1f5fa8', '#1f7a45', '#c08a1e'];
 
 const GROUPS = [
@@ -291,7 +291,7 @@ function tileInfo(i, viewer) {
       if (b.t === 'prop') rows.push(['Construção', `${LVL_ICON[T.lvl]} ${LVL_NAME[T.lvl]}`]);
       rows.push(['Pedágio', fmt(toll(i, viewer))]);
       if (b.t === 'prop' && T.lvl < 4 && viewer) rows.push(['Custo para tomar', fmt(takeoverCost(i, viewer))]);
-      if (b.t === 'prop' && T.lvl === 4) rows.push(['', 'Marco Encantado: não pode ser tomado']);
+      if (b.t === 'prop' && T.lvl === 4) rows.push(['', 'Igreja Encantada: não pode ser tomada']);
     } else if (b.t === 'prop') {
       for (let l = 0; l <= 4; l++) rows.push([`Pedágio com ${LVL_ICON[l]} ${LVL_NAME[l]}`, fmt(price(i) * TOLL_MULT[l])]);
     } else rows.push(['Pedágio', fmt(ATTR_TOLL) + ' a ' + fmt(ATTR_TOLL * 8)]);
@@ -477,7 +477,7 @@ async function chooseLevel(p, i, from, title) {
   btns.push({ label: 'Agora não', value: -1, cls: 'ghost' });
   let note = '';
   if (cur < 3 && maxLvl(p) < 3) note = `<p class="small">Dê mais voltas no tabuleiro para liberar construções mais altas.</p>`;
-  if (T.owner === p.idx && cur === 3) note = '<p class="small">O Marco Encantado não pode ser tomado por ninguém.</p>';
+  if (T.owner === p.idx && cur === 3) note = '<p class="small">A Igreja Encantada não pode ser tomada por ninguém.</p>';
   return ask(title, tileInfo(i, p) + note + `<p>Você tem ${fmt(p.money)}</p>`, btns);
 }
 
@@ -514,7 +514,7 @@ async function offerUpgrade(p, i) {
   sfx.magic();
   log(`${LVL_ICON[L]} ${esc(p.name)} construiu ${LVL_NAME[L]} em ${B[i].n}`);
   render();
-  if (L === 4) await toast(`✨ Marco Encantado em ${B[i].n}!`);
+  if (L === 4) await toast(`⛪ Igreja Encantada em ${B[i].n}!`);
   else if (p.bot) await sleep(400);
 }
 

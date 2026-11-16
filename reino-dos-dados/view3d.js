@@ -261,34 +261,6 @@ const View = (() => {
   }
 
   /* ---------- modelos ---------- */
-  function house(color, s = 1) {
-    const g = new T.Group();
-    const body = mesh(new T.BoxGeometry(0.26, 0.2, 0.26), matStd(0xf1e6cc, { roughness: 0.6 }));
-    body.position.y = 0.1;
-    g.add(body);
-    const roof = mesh(new T.ConeGeometry(0.24, 0.18, 4), matStd(new T.Color(color).multiplyScalar(0.8).getHex(), { roughness: 0.45, metalness: 0.15 }));
-    roof.position.y = 0.29;
-    roof.rotation.y = Math.PI / 4;
-    g.add(roof);
-    const door = mesh(new T.BoxGeometry(0.07, 0.11, 0.01), mat(0x8a5a35), false);
-    door.position.set(0, 0.06, 0.131);
-    g.add(door);
-    g.scale.setScalar(s);
-    return g;
-  }
-  function tower(color, h, r) {
-    const g = new T.Group();
-    const body = mesh(new T.CylinderGeometry(r, r * 1.08, h, 10), matStd(0xf1e6cc, { roughness: 0.6 }));
-    body.position.y = h / 2;
-    g.add(body);
-    const roof = mesh(new T.ConeGeometry(r * 1.35, r * 2.4, 10), mat(color));
-    roof.position.y = h + r * 1.2;
-    g.add(roof);
-    const win = mesh(new T.BoxGeometry(r * 0.6, r * 0.9, 0.01), mat(0x4b3b8f), false);
-    win.position.set(0, h * 0.65, r * 1.0);
-    g.add(win);
-    return g;
-  }
   function flag(color) {
     const g = new T.Group();
     const pole = mesh(new T.CylinderGeometry(0.012, 0.012, 0.42, 6), mat(0xdddddd));
@@ -303,38 +275,38 @@ const View = (() => {
     return g;
   }
 
+  /* miniatura ilustrada em pé (sprite virado para a câmera fixa) */
+  const texCache = {};
+  function spriteImg(name, width, centerY = 0.1) {
+    const m = new T.SpriteMaterial({ transparent: true, alphaTest: 0.3, depthWrite: true });
+    const sp = new T.Sprite(m);
+    sp.center.set(0.5, centerY);
+    sp.scale.set(width, width, 1);
+    const apply = (tex) => {
+      m.map = tex;
+      m.needsUpdate = true;
+      sp.scale.set(width, width * tex.image.height / tex.image.width, 1);
+    };
+    if (texCache[name] && texCache[name].image) apply(texCache[name]);
+    else {
+      texCache[name] = new T.TextureLoader().load(imgUrl(name), (tex) => { tex.encoding = T.sRGBEncoding; apply(tex); });
+    }
+    return sp;
+  }
+
+  // largura de cada nível: cada construção parece maior que a anterior
+  const LEVEL_W = [0, 0.82, 0.98, 1.08, 1.12];
   function makeBuilding(kind, lvl, color) {
     const g = new T.Group();
     if (kind === 'attr') return g;
-    if (lvl === 0) { const f = flag(color); f.position.set(0.05, 0, -0.05); g.add(f); }
-    if (lvl === 1) g.add(house(color, 1.25));
-    if (lvl === 2) {
-      const a = house(color, 1.1); a.position.set(-0.13, 0, -0.1); g.add(a);
-      const b = house(color, 0.95); b.position.set(0.15, 0, 0.05); g.add(b);
-      const c = house(color, 0.75); c.position.set(-0.12, 0, 0.2); g.add(c);
-    }
-    if (lvl === 3) {
-      const wall = mesh(new T.BoxGeometry(0.62, 0.18, 0.62), mat(0xe9e3ff));
-      wall.position.y = 0.09;
-      g.add(wall);
-      [[-0.27, -0.27], [0.27, -0.27], [-0.27, 0.27], [0.27, 0.27]].forEach(([x, z]) => {
-        const tw = tower(color, 0.32, 0.07); tw.position.set(x, 0, z); g.add(tw);
-      });
-      const keep = tower(color, 0.5, 0.13); keep.position.y = 0.1; g.add(keep);
-    }
-    if (lvl === 4) {
-      const ped = mesh(new T.CylinderGeometry(0.3, 0.36, 0.14, 8), mat(0xfff3c4));
-      ped.position.y = 0.07;
-      g.add(ped);
-      const keep = tower(color, 0.55, 0.12); keep.position.y = 0.14; g.add(keep);
-      const crystal = mesh(new T.OctahedronGeometry(0.16), matStd(0xfde68a, { emissive: 0xf59e0b, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.2 }));
-      crystal.position.y = 1.15;
-      g.add(crystal);
-      const halo = new T.Mesh(new T.TorusGeometry(0.24, 0.02, 6, 24), new T.MeshBasicMaterial({ color: 0xfff1a8 }));
-      halo.rotation.x = Math.PI / 2;
-      halo.position.y = 1.15;
-      g.add(halo);
-      spinners.push((t) => { crystal.rotation.y = t * 1.6; crystal.position.y = 1.15 + Math.sin(t * 2) * 0.05; halo.scale.setScalar(1 + Math.sin(t * 3) * 0.08); });
+    if (lvl === 0) { const f = flag(color); f.position.set(0.05, 0, -0.05); g.add(f); return g; }
+    g.add(spriteImg('predio' + lvl, LEVEL_W[lvl], 0.12));
+    // bandeirinha do dono atrás da construção
+    const f = flag(color); f.position.set(-0.34, 0, -0.34); f.scale.setScalar(0.75); g.add(f);
+    if (lvl === 4) { // brilho dourado do marco máximo
+      const glow = new T.Mesh(new T.RingGeometry(0.34, 0.46, 40), new T.MeshBasicMaterial({ color: 0xfde68a, transparent: true, opacity: 0.5, side: T.DoubleSide, depthWrite: false }));
+      glow.rotation.x = -Math.PI / 2; glow.position.y = 0.01; g.add(glow);
+      spinners.push((t) => { glow.material.opacity = 0.3 + Math.sin(t * 3) * 0.2; glow.scale.setScalar(1 + Math.sin(t * 3) * 0.06); });
     }
     return g;
   }
@@ -379,50 +351,8 @@ const View = (() => {
       for (let k = 0; k < 4; k++) { const c = coinMesh(); c.position.set(-0.08 + k * 0.05, 0.3 + k * 0.02, 0); g.add(c); }
       g.rotation.y = Math.PI / 4;
     } else if (b.t === 'attr') {
-      g.add(makeAttraction(i));
+      g.add(spriteImg('atracao' + ({ 6: 1, 13: 2, 20: 3, 27: 4 }[i]), 0.95, 0.1));
     } else return null;
-    return g;
-  }
-
-  function makeAttraction(i) {
-    const g = new T.Group();
-    const name = i;
-    if (name === 6) { // roda-gigante
-      const legL = mesh(new T.BoxGeometry(0.04, 0.5, 0.04), mat(0xe5e7eb)); legL.position.set(-0.12, 0.25, 0); legL.rotation.z = -0.25;
-      const legR = legL.clone(); legR.position.x = 0.12; legR.rotation.z = 0.25;
-      const wheel = new T.Group(); wheel.position.y = 0.5;
-      const rim = mesh(new T.TorusGeometry(0.3, 0.025, 6, 24), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 })); wheel.add(rim);
-      for (let k = 0; k < 8; k++) {
-        const a = (k / 8) * Math.PI * 2;
-        const spoke = mesh(new T.BoxGeometry(0.01, 0.3, 0.01), mat(0xffffff), false); spoke.position.set(Math.cos(a) * 0.15, Math.sin(a) * 0.15, 0); spoke.rotation.z = a - Math.PI / 2; wheel.add(spoke);
-        const cab = mesh(new T.BoxGeometry(0.07, 0.07, 0.07), mat([0xfacc15, 0x60a5fa, 0x34d399, 0xf87171][k % 4])); cab.position.set(Math.cos(a) * 0.3, Math.sin(a) * 0.3, 0); wheel.add(cab);
-      }
-      const holder = new T.Group(); holder.add(legL, legR, wheel); holder.rotation.y = -Math.PI / 4; g.add(holder);
-      spinners.push((t) => { wheel.rotation.z = t * 0.8; });
-    } else if (name === 13) { // fonte
-      const b1 = mesh(new T.CylinderGeometry(0.34, 0.36, 0.1, 16), mat(0xe2e8f0)); b1.position.y = 0.05; g.add(b1);
-      const w = mesh(new T.CylinderGeometry(0.3, 0.3, 0.02, 16), matStd(0x38bdf8, { roughness: 0.1 }), false); w.position.y = 0.1; g.add(w);
-      const col = mesh(new T.CylinderGeometry(0.05, 0.07, 0.3, 8), mat(0xe2e8f0)); col.position.y = 0.25; g.add(col);
-      const b2 = mesh(new T.CylinderGeometry(0.15, 0.1, 0.06, 12), mat(0xe2e8f0)); b2.position.y = 0.4; g.add(b2);
-      const jet = new T.Mesh(new T.SphereGeometry(0.08, 10, 8), new T.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.8 })); jet.position.y = 0.5; g.add(jet);
-      spinners.push((t) => { jet.scale.y = 1 + Math.sin(t * 6) * 0.3; });
-    } else if (name === 20) { // pedra encantada
-      const r1 = mesh(new T.DodecahedronGeometry(0.3, 0), mat(0xc2703a)); r1.position.set(-0.05, 0.24, 0); r1.scale.y = 1.25; g.add(r1);
-      const r2 = mesh(new T.DodecahedronGeometry(0.18, 0), mat(0xa85a2a)); r2.position.set(0.22, 0.14, 0.12); g.add(r2);
-      const tip = mesh(new T.OctahedronGeometry(0.07), matStd(0x67e8f9, { emissive: 0x06b6d4, emissiveIntensity: 0.8 })); tip.position.set(-0.05, 0.78, 0); g.add(tip);
-      spinners.push((t) => { tip.rotation.y = t * 2; tip.position.y = 0.78 + Math.sin(t * 2.5) * 0.04; });
-    } else { // farol
-      const rock = mesh(new T.CylinderGeometry(0.3, 0.36, 0.1, 10), mat(0x9ca3af)); rock.position.y = 0.05; g.add(rock);
-      [0xffffff, 0xef4444, 0xffffff, 0xef4444].forEach((c, k) => {
-        const seg = mesh(new T.CylinderGeometry(0.15 - k * 0.018, 0.168 - k * 0.018, 0.17, 12), mat(c)); seg.position.y = 0.185 + k * 0.17; g.add(seg);
-      });
-      const lamp = mesh(new T.CylinderGeometry(0.09, 0.09, 0.1, 10), matStd(0xfde047, { emissive: 0xfacc15, emissiveIntensity: 0.9 })); lamp.position.y = 0.83; g.add(lamp);
-      const cap = mesh(new T.ConeGeometry(0.13, 0.12, 10), mat(0x1e3a8a)); cap.position.y = 0.94; g.add(cap);
-      const beam = new T.Mesh(new T.ConeGeometry(0.16, 0.7, 12, 1, true), new T.MeshBasicMaterial({ color: 0xfff3a0, transparent: true, opacity: 0.35, side: T.DoubleSide, depthWrite: false }));
-      beam.rotation.z = Math.PI / 2; beam.position.set(0.38, 0, 0);
-      const piv = new T.Group(); piv.position.y = 0.83; piv.add(beam); g.add(piv);
-      spinners.push((t) => { piv.rotation.y = t * 1.5; });
-    }
     return g;
   }
 
