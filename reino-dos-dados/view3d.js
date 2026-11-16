@@ -696,6 +696,10 @@ const View = (() => {
 
   let insets = { top: 0, bottom: 0 };
   function setInsets(v) { insets = v; fit(); }
+  function screenPos(x, y, z) {
+    const v = new T.Vector3(x, y, z).project(camera);
+    return { x: ((v.x + 1) / 2) * canvas.clientWidth, y: ((1 - v.y) / 2) * canvas.clientHeight };
+  }
   function fit() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -703,17 +707,17 @@ const View = (() => {
     renderer.setSize(w, h, false);
     camera.updateMatrixWorld();
     const pts = [];
-    [-4.35, 4.35].forEach((x) => [-4.35, 4.35].forEach((z) => { pts.push(new T.Vector3(x, 1.3, z), new T.Vector3(x, -0.4, z)); }));
+    [-4.35, 4.35].forEach((x) => [-4.35, 4.35].forEach((z) => { pts.push(new T.Vector3(x, 0.9, z), new T.Vector3(x, -0.4, z)); }));
     let minx = Infinity; let maxx = -Infinity; let miny = Infinity; let maxy = -Infinity;
     pts.forEach((p) => {
       const v = p.applyMatrix4(camera.matrixWorldInverse);
       minx = Math.min(minx, v.x); maxx = Math.max(maxx, v.x); miny = Math.min(miny, v.y); maxy = Math.max(maxy, v.y);
     });
     const top = Math.min(insets.top, h * 0.3);
-    const bot = Math.min(insets.bottom, h * 0.35);
+    const bot = Math.min(insets.bottom, h * 0.4);
     const ah = Math.max(80, h - top - bot);
     const aw = Math.max(80, w - 16);
-    const s2 = Math.max((maxx - minx) / aw, (maxy - miny) / ah) * 1.03; // unidades por pixel
+    const s2 = Math.max((maxx - minx) / aw, (maxy - miny) / ah) * 0.99; // unidades por pixel
     const cx = (minx + maxx) / 2;
     const cy = (miny + maxy) / 2;
     camera.left = cx - (w / 2) * s2; camera.right = cx + (w / 2) * s2;
@@ -804,5 +808,5 @@ const View = (() => {
     requestAnimationFrame(loop);
   }
 
-  return { init, setInsets, fit, sync, placeAll, setCurrent, hop, teleport, roll, coins, sparkle, setPick, tilePos, tokenPos: (idx) => tokens[idx] && tokens[idx].group.position.clone() };
+  return { init, setInsets, screenPos, fit, sync, placeAll, setCurrent, hop, teleport, roll, coins, sparkle, setPick, tilePos, tokenPos: (idx) => tokens[idx] && tokens[idx].group.position.clone() };
 })();

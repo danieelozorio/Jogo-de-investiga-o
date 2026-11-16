@@ -217,11 +217,12 @@ function renderPlayers() {
     }
     const prev = lastMoney[p.idx];
     const ch = prev === undefined || prev === p.money ? '' : prev < p.money ? 'up' : 'down';
-    return `<div class="pcard ${p.idx === S.turn ? 'cur' : ''} ${p.out ? 'out' : ''}">
+    return `<div class="pcard c${p.idx} ${p.idx === S.turn ? 'cur' : ''} ${p.out ? 'out' : ''}" style="--pc:${p.color}">
       <div class="av" style="border-color:${p.color}">${charImg(p.char)}</div>
       <div class="nm">${esc(p.name)}${p.bot ? ' 🤖' : ''}</div>
       <div class="mn ${ch}">${fmt(p.money)}</div>
-      <div class="st">${st.join(' ')}</div></div>`;
+      <div class="st">${st.join(' ')}</div>
+      ${p.idx === S.turn && !p.out ? '<span class="vez">VEZ</span>' : ''}</div>`;
   }).join('');
   S.players.forEach((p) => { lastMoney[p.idx] = p.money; });
 }
@@ -825,11 +826,29 @@ function startGame(state) {
     drawBackground($('#bg'));
     const h = window.innerHeight;
     const w = window.innerWidth;
-    const tb = $('#topbar').getBoundingClientRect();
-    const cr = $('#controls').getBoundingClientRect();
-    const spansMiddle = cr.left < w * 0.5 && cr.right > w * 0.5;
-    View.setInsets({ top: tb.bottom + 6, bottom: spansMiddle ? h - cr.top + 6 : 0 });
+    const ctl = $('#controls');
+    if (w > h) {
+      // tela deitada: tabuleiro usa a altura toda; o botão de rolar fica na praça, logo abaixo dos dados
+      const tools = $('.tools').getBoundingClientRect();
+      const info = $('#info').getBoundingClientRect();
+      View.setInsets({ top: tools.bottom + 4, bottom: h - info.top + 4 });
+      const p = View.screenPos(0.8, 0.25, 0.8);
+      ctl.style.left = p.x + 'px';
+      ctl.style.top = p.y + 'px';
+      ctl.style.bottom = '';
+    } else {
+      // tela em pé: cartões em cima e embaixo, botão logo acima dos cartões de baixo
+      const cards = [...document.querySelectorAll('.pcard')].map((c) => c.getBoundingClientRect());
+      const topCards = Math.max(0, ...cards.filter((r) => r.top < h / 2).map((r) => r.bottom));
+      const botCards = Math.min(h, ...cards.filter((r) => r.top >= h / 2).map((r) => r.top));
+      const info = $('#info').getBoundingClientRect();
+      ctl.style.left = '50%';
+      ctl.style.top = '';
+      ctl.style.bottom = (h - botCards + 10) + 'px';
+      View.setInsets({ top: Math.max(topCards, info.bottom) + 6, bottom: h - botCards + 110 });
+    }
   };
+  render();
   relayout();
   window.addEventListener('resize', relayout);
   loadBackgroundImage('img/fundo.webp', () => drawBackground($('#bg')));

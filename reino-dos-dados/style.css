@@ -198,3 +198,61 @@ h2 { font-size: 1.2rem; margin: 1.2em 0 .5em; color: var(--gold); }
 @media (min-aspect-ratio: 5/4) and (min-width: 900px) {
   #game #controls { min-height: 0; }
 }
+
+/* ---------- jogadores nos cantos, tabuleiro no centro ---------- */
+#game #players { position: absolute; inset: 0; display: block; pointer-events: none; z-index: 10; }
+#game .pcard {
+  position: absolute; pointer-events: auto; width: min(calc(50vw - 24px), 250px);
+  grid-template-columns: auto 1fr; column-gap: 10px; padding: 8px 12px 8px 8px;
+  border: 3px solid var(--pc); border-radius: 18px; background: #2a1b5cee;
+}
+#game .pcard.c0 { top: calc(env(safe-area-inset-top, 0px) + 10px); left: max(12px, env(safe-area-inset-left, 0px)); }
+#game .pcard.c1 { top: calc(env(safe-area-inset-top, 0px) + 10px); right: max(12px, env(safe-area-inset-right, 0px)); }
+#game .pcard.c2 { bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); right: max(12px, env(safe-area-inset-right, 0px)); }
+#game .pcard.c3 { bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); left: max(12px, env(safe-area-inset-left, 0px)); }
+#game .pcard .av { width: 52px; height: 52px; border-width: 3px; }
+#game .pcard .nm { font-size: 1rem; font-weight: 700; }
+#game .pcard .mn { font-size: 1.25rem; }
+#game .pcard .st { font-size: .75rem; }
+#game .pcard.cur { transform: scale(1.05); box-shadow: 0 0 0 3px var(--gold), 0 8px 24px #3b250a66; }
+#game .pcard .vez {
+  position: absolute; top: -10px; right: 12px; background: var(--gold); color: #3a2300;
+  font-size: .7rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; letter-spacing: .06em;
+}
+#game .tools {
+  position: absolute; z-index: 11; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 50%; transform: translateX(-50%);
+  flex-direction: row; gap: 6px;
+}
+#game #info {
+  position: absolute; z-index: 9; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); width: min(calc(100vw - 2 * 270px), 420px); min-width: 220px;
+  background: #2a1b5ce6; color: var(--txt); border-radius: 16px; padding: 6px 12px; box-shadow: 0 6px 18px #3b250a40;
+}
+#game #info #turnLbl { font-size: .85rem; }
+#game #info #roundLbl { font-size: .75rem; }
+#game #info #log { min-height: 0; font-size: .78rem; }
+#game #info #log li:nth-child(n+2) { display: none; }
+#game #controls {
+  position: absolute; z-index: 10; right: auto; bottom: auto; margin: 0; transform: translateX(-50%);
+  width: 240px; min-height: 0; background: none; box-shadow: none; padding: 0; gap: 6px;
+}
+#game #controls #gauge { background: #2a1b5cdd; padding: 4px 10px 8px; border-radius: 12px; }
+@media (max-aspect-ratio: 1/1) {
+  #game .pcard .av { width: 44px; height: 44px; }
+  #game .pcard .mn { font-size: 1.1rem; }
+  #game .pcard .nm { font-size: .9rem; }
+  #game .tools {
+    left: auto; right: max(12px, env(safe-area-inset-right, 0px)); transform: none;
+    top: calc(env(safe-area-inset-top, 0px) + 96px); flex-direction: column;
+  }
+  #game #info {
+    left: max(12px, env(safe-area-inset-left, 0px)); right: 70px; transform: none; width: auto; min-width: 0;
+    bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 96px);
+  }
+  #game #controls { width: min(calc(100% - 32px), 320px); }
+}
+@media (min-aspect-ratio: 1/1) {
+  #game #controls { width: 200px; gap: 4px; }
+  #game #controls #btnRoll { font-size: 1.1rem; padding: 8px 28px; }
+  #game #controls .zones { font-size: .65rem; }
+}
