@@ -15,4 +15,4 @@ Não precisa de servidor nem banco: é só HTML, CSS e JS. O tabuleiro 3D usa o 
 
 Teste rápido só com bots: abra `index.html?turbo`, coloque todos como Bot e clique em Começar.
 
-As ilustrações ficam em `img/` (personagens recortados com contorno e capa).
+As ilustrações dos personagens ficam em `img/`. Se existir `img/mesa.webp`, ela vira o fundo do jogo; senão o fundo é uma mesa de madeira desenhada por código.

@@ -63,10 +63,10 @@ const View = (() => {
   /* ---------- cena base ---------- */
   function buildWorld() {
     // tabuleiro de madeira grosso, apoiado no chão (o chão é o fundo desenhado atrás do 3D)
-    const frame = mesh(new T.BoxGeometry(8.7, 0.5, 8.7), mat(0xb7793f), true);
+    const frame = mesh(new T.BoxGeometry(8.7, 0.5, 8.7), matStd(0x4a2a17, { roughness: 0.45, metalness: 0.05 }), true);
     frame.position.y = -0.14;
     scene.add(frame);
-    const rim = mesh(new T.BoxGeometry(8.36, 0.1, 8.36), mat(0x7a4a22), false);
+    const rim = mesh(new T.BoxGeometry(8.4, 0.1, 8.4), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 }), false);
     rim.position.y = 0.07;
     scene.add(rim);
     // sombra suave do tabuleiro no chão
@@ -93,69 +93,73 @@ const View = (() => {
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const redraw = () => { const x = c.getContext('2d'); x.clearRect(0, 0, w, h); draw(x, w, h); tex.needsUpdate = true; };
     redraw();
-    if (document.fonts && document.fonts.load) document.fonts.load('700 120px Fredoka').then(redraw).catch(() => {});
+    if (document.fonts && document.fonts.load) document.fonts.load('700 120px Cinzel').then(redraw).catch(() => {});
     return tex;
   }
   function buildCenter() {
-    // chão do centro: tons dos 4 biomas saindo do meio (cima = Sertão, baixo = Amazônia, esq. = Pantanal, dir. = Litoral)
+    // feltro verde com filete dourado duplo e brasão discreto
     const floor = canvasTex(1024, 1024, (x, w) => {
-      x.fillStyle = '#fdf1d2';
-      x.fillRect(0, 0, w, w);
-      const tri = (pts, col) => { x.beginPath(); x.moveTo(512, 512); pts.forEach(([a, b]) => x.lineTo(a, b)); x.closePath(); x.fillStyle = col; x.fill(); };
-      tri([[0, 0], [1024, 0]], '#ffcf8a');
-      tri([[0, 1024], [1024, 1024]], '#bfeaa0');
-      tri([[0, 0], [0, 1024]], '#a8e6df');
-      tri([[1024, 0], [1024, 1024]], '#aed4ff');
-      // bolinhas suaves
-      x.fillStyle = 'rgba(255,255,255,.35)';
-      for (let yy = 32; yy < 1024; yy += 64) for (let xx = (yy / 64) % 2 ? 64 : 32; xx < 1024; xx += 64) { x.beginPath(); x.arc(xx, yy, 5, 0, Math.PI * 2); x.fill(); }
-      // brilho no meio
-      const g = x.createRadialGradient(512, 512, 40, 512, 512, 520);
-      g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(0.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      const g = x.createRadialGradient(512, 512, 60, 512, 512, 760);
+      g.addColorStop(0, '#2a5a45'); g.addColorStop(1, '#14301f');
       x.fillStyle = g; x.fillRect(0, 0, w, w);
-      // borda tracejada
-      x.setLineDash([26, 18]); x.lineWidth = 10; x.strokeStyle = 'rgba(255,255,255,.9)';
-      x.strokeRect(28, 28, 968, 968);
+      for (let k = 0; k < 26000; k++) { // trama do feltro
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.06)';
+        x.fillRect(Math.random() * w, Math.random() * w, 2, 2);
+      }
+      x.strokeStyle = '#c9a24a'; x.lineWidth = 6; x.strokeRect(34, 34, 956, 956);
+      x.lineWidth = 2; x.strokeRect(52, 52, 920, 920);
+      // cantoneiras
+      [[52, 52], [972, 52], [52, 972], [972, 972]].forEach(([cx, cy]) => {
+        x.save(); x.translate(cx, cy); x.rotate(Math.PI / 4);
+        x.fillStyle = '#c9a24a'; x.fillRect(-12, -12, 24, 24);
+        x.fillStyle = '#14301f'; x.fillRect(-6, -6, 12, 12);
+        x.restore();
+      });
+      // rosa-dos-ventos tênue no meio
+      x.save(); x.translate(512, 512); x.globalAlpha = 0.16; x.fillStyle = '#e6c77a';
+      for (let k = 0; k < 8; k++) {
+        x.rotate(Math.PI / 4);
+        x.beginPath(); x.moveTo(0, -(k % 2 ? 210 : 330)); x.lineTo(26, 0); x.lineTo(-26, 0); x.closePath(); x.fill();
+      }
+      x.restore();
     });
-    const plane = new T.Mesh(new T.PlaneGeometry(6.02, 6.02), new T.MeshLambertMaterial({ map: floor }));
+    const plane = new T.Mesh(new T.PlaneGeometry(6.02, 6.02), new T.MeshStandardMaterial({ map: floor, roughness: 0.95 }));
     plane.rotation.x = -Math.PI / 2;
     plane.position.y = 0.19;
     plane.receiveShadow = true;
     scene.add(plane);
 
-    // pista onde os dados caem
-    const pad = mesh(new T.CylinderGeometry(1.0, 1.05, 0.08, 40), mat(0xffffff), false);
-    pad.position.y = 0.2;
-    scene.add(pad);
-    const padRim = mesh(new T.TorusGeometry(1.0, 0.05, 8, 48), matStd(0xfbbf24, { metalness: 0.4, roughness: 0.35 }), false);
+    // pista dos dados: aro de latão com couro escuro dentro
+    const padRim = mesh(new T.TorusGeometry(1.0, 0.045, 10, 64), matStd(0xc9a24a, { metalness: 0.9, roughness: 0.28 }), false);
     padRim.rotation.x = Math.PI / 2;
-    padRim.position.y = 0.24;
+    padRim.position.y = 0.21;
     scene.add(padRim);
-    const padTop = mesh(new T.CircleGeometry(0.92, 40), mat(0x7c3aed), false);
+    const padTop = mesh(new T.CircleGeometry(0.97, 64), matStd(0x2a1a10, { roughness: 0.7 }), false);
     padTop.rotation.x = -Math.PI / 2;
-    padTop.position.y = 0.245;
+    padTop.position.y = 0.2;
     scene.add(padTop);
 
-    // logo de pé no fundo da praça, de frente para a câmera
+    // logo gravado em dourado, de frente para a câmera
     const logo = canvasTex(1024, 512, (x) => {
-      x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
-      const word = (txt, y, size) => {
-        x.font = `700 ${size}px Fredoka, "Trebuchet MS", sans-serif`;
-        x.lineWidth = size * 0.34; x.strokeStyle = '#ffffff'; x.strokeText(txt, 512, y);
-        x.lineWidth = size * 0.2; x.strokeStyle = '#5b21b6'; x.strokeText(txt, 512, y);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      const word = (txt, y, size, sp) => {
+        x.font = `700 ${size}px Cinzel, "Trajan Pro", Georgia, serif`;
+        if ('letterSpacing' in x) x.letterSpacing = sp + 'px';
+        x.fillStyle = 'rgba(0,0,0,.55)'; x.fillText(txt, 515, y + 6);
         const g = x.createLinearGradient(0, y - size / 2, 0, y + size / 2);
-        g.addColorStop(0, '#fff7b0'); g.addColorStop(0.5, '#fcd34d'); g.addColorStop(1, '#f59e0b');
+        g.addColorStop(0, '#fff1c4'); g.addColorStop(0.45, '#e2bd6a'); g.addColorStop(0.55, '#b8893a'); g.addColorStop(1, '#f0d48c');
         x.fillStyle = g; x.fillText(txt, 512, y);
       };
-      word('Reino', 150, 170);
-      word('dos Dados', 345, 150);
+      word('REINO', 170, 150, 18);
+      x.strokeStyle = '#c9a24a'; x.lineWidth = 3;
+      x.beginPath(); x.moveTo(250, 268); x.lineTo(440, 268); x.moveTo(584, 268); x.lineTo(774, 268); x.stroke();
+      x.fillStyle = '#c9a24a'; x.save(); x.translate(512, 268); x.rotate(Math.PI / 4); x.fillRect(-9, -9, 18, 18); x.restore();
+      word('DOS DADOS', 360, 104, 12);
     });
-    const sign = new T.Mesh(new T.PlaneGeometry(3.5, 1.75), new T.MeshBasicMaterial({ map: logo, transparent: true, depthWrite: false }));
-    sign.position.set(-1.45, 1.2, -1.45);
+    const sign = new T.Mesh(new T.PlaneGeometry(2.9, 1.45), new T.MeshBasicMaterial({ map: logo, transparent: true, depthWrite: false }));
+    sign.position.set(-1.05, 0.95, -1.05);
     sign.quaternion.copy(camera.quaternion);
     scene.add(sign);
-    spinners.push((t) => { sign.position.y = 1.2 + Math.sin(t * 1.4) * 0.05; });
-
   }
   /* ---------- casas do tabuleiro ---------- */
   function buildTiles(B) {
@@ -164,7 +168,7 @@ const View = (() => {
       const p = tilePos(i);
       group.position.set(p.x, 0, p.z);
       const corner = i % 7 === 0;
-      const base = mesh(new T.BoxGeometry(0.97, 0.18, 0.97), mat(new T.Color(tileColor(i)).multiplyScalar(0.72).getHex()), false);
+      const base = mesh(new T.BoxGeometry(0.97, 0.18, 0.97), matStd(0x2b1a0f, { roughness: 0.5 }), false);
       base.position.y = 0.11;
       base.receiveShadow = true;
       group.add(base);
@@ -213,47 +217,45 @@ const View = (() => {
     t.key = key;
     const ctx = t.ctx;
     ctx.clearRect(0, 0, 256, 256);
-    // fundo na cor da região, com brilho no alto
-    ctx.fillStyle = d.bg;
-    roundRect(ctx, 2, 2, 252, 252, 30);
+    const corner = d.big;
+    // papel marfim (cantos em feltro verde)
+    const g = ctx.createLinearGradient(0, 0, 0, 256);
+    if (corner) { g.addColorStop(0, '#2c5c47'); g.addColorStop(1, '#173826'); } else { g.addColorStop(0, '#fbf3e0'); g.addColorStop(1, '#eadbb8'); }
+    ctx.fillStyle = g;
+    roundRect(ctx, 2, 2, 252, 252, 14);
     ctx.fill();
-    const sh = ctx.createLinearGradient(0, 0, 0, 256);
-    sh.addColorStop(0, 'rgba(255,255,255,.5)'); sh.addColorStop(0.55, 'rgba(255,255,255,.08)'); sh.addColorStop(1, 'rgba(0,0,0,.12)');
-    ctx.fillStyle = sh;
-    roundRect(ctx, 2, 2, 252, 252, 30);
-    ctx.fill();
+    // faixa da região no alto
+    if (d.band) {
+      ctx.save(); roundRect(ctx, 2, 2, 252, 252, 14); ctx.clip();
+      ctx.fillStyle = d.band; ctx.fillRect(0, 0, 256, 52);
+      ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, 0, 256, 18);
+      ctx.restore();
+    }
+    // filete dourado
+    ctx.strokeStyle = '#b8893a'; ctx.lineWidth = 4;
+    roundRect(ctx, 14, d.band ? 62 : 14, 228, d.band ? 180 : 228, 8); ctx.stroke();
     if (d.owner) {
-      ctx.lineWidth = 20;
-      ctx.strokeStyle = d.owner;
-      roundRect(ctx, 12, 12, 232, 232, 24);
-      ctx.stroke();
+      ctx.strokeStyle = d.owner; ctx.lineWidth = 16;
+      roundRect(ctx, 10, 10, 236, 236, 12); ctx.stroke();
     }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     if (d.emoji) {
-      ctx.fillStyle = d.owner ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.9)';
-      roundRect(ctx, 34, 26, 188, 140, 30);
-      ctx.fill();
-      ctx.font = '96px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-      ctx.globalAlpha = d.dimEmoji ? 0.4 : 1;
-      ctx.fillText(d.emoji, 128, 100);
-      ctx.globalAlpha = 1;
+      ctx.save();
+      if ('filter' in ctx) ctx.filter = 'sepia(0.85) saturate(0.8) contrast(1.05)';
+      ctx.font = '78px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      ctx.globalAlpha = d.dimEmoji ? 0.35 : 0.95;
+      ctx.fillText(d.emoji, 128, 128);
+      ctx.restore();
     }
     if (d.text) {
-      ctx.font = `700 ${d.big ? 52 : 62}px Fredoka, "Trebuchet MS", sans-serif`;
-      const w = Math.min(244, ctx.measureText(d.text).width + 36);
-      ctx.fillStyle = 'rgba(0,0,0,.25)';
-      roundRect(ctx, 128 - w / 2, 178, w, 72, 34);
-      ctx.fill();
-      ctx.fillStyle = d.owner || '#ffffff';
-      roundRect(ctx, 128 - w / 2, 172, w, 72, 34);
-      ctx.fill();
-      ctx.fillStyle = d.owner ? '#ffffff' : '#3b1f6b';
-      ctx.fillText(d.text, 128, 210, 228);
+      ctx.font = `700 ${corner ? 40 : 52}px Cinzel, "Trajan Pro", Georgia, serif`;
+      ctx.fillStyle = corner ? '#e6c77a' : (d.owner || '#3a2414');
+      ctx.fillText(d.text, 128, corner ? 128 : 206, 220);
     }
     if (d.badge) {
-      ctx.font = '54px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-      ctx.fillText(d.badge, 212, 60);
+      ctx.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      ctx.fillText(d.badge, 210, 96);
     }
     t.tex.needsUpdate = true;
   }
@@ -261,10 +263,10 @@ const View = (() => {
   /* ---------- modelos ---------- */
   function house(color, s = 1) {
     const g = new T.Group();
-    const body = mesh(new T.BoxGeometry(0.26, 0.2, 0.26), mat(0xfff6e6));
+    const body = mesh(new T.BoxGeometry(0.26, 0.2, 0.26), matStd(0xf1e6cc, { roughness: 0.6 }));
     body.position.y = 0.1;
     g.add(body);
-    const roof = mesh(new T.ConeGeometry(0.24, 0.18, 4), mat(color));
+    const roof = mesh(new T.ConeGeometry(0.24, 0.18, 4), matStd(new T.Color(color).multiplyScalar(0.8).getHex(), { roughness: 0.45, metalness: 0.15 }));
     roof.position.y = 0.29;
     roof.rotation.y = Math.PI / 4;
     g.add(roof);
@@ -276,7 +278,7 @@ const View = (() => {
   }
   function tower(color, h, r) {
     const g = new T.Group();
-    const body = mesh(new T.CylinderGeometry(r, r * 1.08, h, 10), mat(0xf4f1ff));
+    const body = mesh(new T.CylinderGeometry(r, r * 1.08, h, 10), matStd(0xf1e6cc, { roughness: 0.6 }));
     body.position.y = h / 2;
     g.add(body);
     const roof = mesh(new T.ConeGeometry(r * 1.35, r * 2.4, 10), mat(color));
@@ -355,19 +357,19 @@ const View = (() => {
         const piv = new T.Group(); piv.position.set(0.08, 0.62, 0); leaf.position.set(0.14, 0, 0); piv.rotation.y = (k / 5) * Math.PI * 2; leaf.rotation.set(0, 0, -Math.PI / 2.2); piv.add(leaf); g.add(piv);
       }
     } else if (b.t === 'festival') {
-      const tent = mesh(new T.ConeGeometry(0.38, 0.55, 12), mat(0xf43f5e)); tent.position.y = 0.36; g.add(tent);
-      const base = mesh(new T.CylinderGeometry(0.38, 0.38, 0.1, 12), mat(0xfff1f2)); base.position.y = 0.05; g.add(base);
+      const tent = mesh(new T.ConeGeometry(0.38, 0.55, 12), mat(0x8f2f2a)); tent.position.y = 0.36; g.add(tent);
+      const base = mesh(new T.CylinderGeometry(0.38, 0.38, 0.1, 12), mat(0xf1e6cc)); base.position.y = 0.05; g.add(base);
       const f = flag(0xfacc15); f.position.y = 0.55; f.scale.setScalar(0.7); g.add(f);
     } else if (b.t === 'portal') {
-      const ring = new T.Mesh(new T.TorusGeometry(0.3, 0.07, 10, 28), matStd(0x8b5cf6, { emissive: 0x6d28d9, emissiveIntensity: 0.6 }));
+      const ring = new T.Mesh(new T.TorusGeometry(0.3, 0.07, 10, 28), matStd(0xc9a24a, { metalness: 0.9, roughness: 0.25, emissive: 0x3a2a0a, emissiveIntensity: 0.4 }));
       ring.position.y = 0.45; ring.rotation.y = Math.PI / 4; ring.castShadow = true;
-      const core = new T.Mesh(new T.CircleGeometry(0.26, 24), new T.MeshBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.75, side: T.DoubleSide }));
+      const core = new T.Mesh(new T.CircleGeometry(0.26, 24), new T.MeshBasicMaterial({ color: 0x3fa7a0, transparent: true, opacity: 0.75, side: T.DoubleSide }));
       core.position.y = 0.45; core.rotation.y = Math.PI / 4;
       g.add(ring, core);
       spinners.push((t) => { ring.rotation.z = t * 2; core.material.opacity = 0.5 + Math.sin(t * 4) * 0.25; });
     } else if (b.t === 'card') {
-      const ped = mesh(new T.CylinderGeometry(0.1, 0.16, 0.12, 8), mat(0xc4b5fd)); ped.position.y = 0.06; g.add(ped);
-      const ball = new T.Mesh(new T.SphereGeometry(0.17, 18, 14), matStd(0xa78bfa, { emissive: 0x7c3aed, emissiveIntensity: 0.5, transparent: true, opacity: 0.88, roughness: 0.1 }));
+      const ped = mesh(new T.CylinderGeometry(0.1, 0.16, 0.12, 8), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 })); ped.position.y = 0.06; g.add(ped);
+      const ball = new T.Mesh(new T.SphereGeometry(0.17, 18, 14), matStd(0xe0a24a, { emissive: 0x8a4a10, emissiveIntensity: 0.5, transparent: true, opacity: 0.9, roughness: 0.08, metalness: 0.1 }));
       ball.castShadow = true;
       g.add(ball);
       spinners.push((t) => { ball.position.y = 0.36 + Math.sin(t * 2 + i) * 0.05; ball.rotation.y = t; });
@@ -389,7 +391,7 @@ const View = (() => {
       const legL = mesh(new T.BoxGeometry(0.04, 0.5, 0.04), mat(0xe5e7eb)); legL.position.set(-0.12, 0.25, 0); legL.rotation.z = -0.25;
       const legR = legL.clone(); legR.position.x = 0.12; legR.rotation.z = 0.25;
       const wheel = new T.Group(); wheel.position.y = 0.5;
-      const rim = mesh(new T.TorusGeometry(0.3, 0.025, 6, 24), mat(0xf472b6)); wheel.add(rim);
+      const rim = mesh(new T.TorusGeometry(0.3, 0.025, 6, 24), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 })); wheel.add(rim);
       for (let k = 0; k < 8; k++) {
         const a = (k / 8) * Math.PI * 2;
         const spoke = mesh(new T.BoxGeometry(0.01, 0.3, 0.01), mat(0xffffff), false); spoke.position.set(Math.cos(a) * 0.15, Math.sin(a) * 0.15, 0); spoke.rotation.z = a - Math.PI / 2; wheel.add(spoke);
@@ -427,10 +429,10 @@ const View = (() => {
   /* ---------- personagens: figuras ilustradas em pé ---------- */
   function makeFigure(char, color) {
     const g = new T.Group();
-    const base = mesh(new T.CylinderGeometry(0.2, 0.22, 0.06, 24), matStd(color, { metalness: 0.25, roughness: 0.4 }));
+    const base = mesh(new T.CylinderGeometry(0.2, 0.23, 0.07, 32), matStd(0xc9a24a, { metalness: 0.9, roughness: 0.3 }));
     base.position.y = 0.03;
     g.add(base);
-    const top = mesh(new T.CylinderGeometry(0.16, 0.16, 0.02, 24), mat(0xffffff), false);
+    const top = mesh(new T.CylinderGeometry(0.17, 0.17, 0.02, 32), matStd(color, { roughness: 0.4 }), false);
     top.position.y = 0.065;
     g.add(top);
     const m = new T.SpriteMaterial({ transparent: true, alphaTest: 0.35, depthWrite: true });
@@ -461,8 +463,8 @@ const View = (() => {
     const c = document.createElement('canvas');
     c.width = c.height = 128;
     const x = c.getContext('2d');
-    x.fillStyle = '#ffffff'; x.fillRect(0, 0, 128, 128);
-    x.fillStyle = n === 1 ? '#e11d48' : '#4c1d95';
+    x.fillStyle = '#f4ead3'; x.fillRect(0, 0, 128, 128);
+    x.fillStyle = n === 1 ? '#9b1c1c' : '#1c140a';
     PIPS[n].forEach((j) => { x.beginPath(); x.arc(28 + (j % 3) * 36, 28 + Math.floor(j / 3) * 36, n === 1 ? 17 : 12, 0, Math.PI * 2); x.fill(); });
     const t = new T.CanvasTexture(c);
     t.encoding = T.sRGBEncoding;
@@ -589,7 +591,7 @@ const View = (() => {
     g.position.set(p.x, GROUND_Y, p.z);
     const balls = [];
     for (let k = 0; k < 6; k++) {
-      const b = mesh(new T.SphereGeometry(0.07, 10, 8), mat([0xf43f5e, 0xfacc15, 0x22d3ee, 0xa855f7, 0x34d399, 0xfb923c][k]));
+      const b = mesh(new T.SphereGeometry(0.07, 10, 8), mat([0x8f2f2a, 0xfacc15, 0x22d3ee, 0xa855f7, 0x34d399, 0xfb923c][k]));
       g.add(b);
       balls.push(b);
     }
@@ -734,6 +736,8 @@ const View = (() => {
     renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputEncoding = T.sRGBEncoding;
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = T.PCFSoftShadowMap;
     scene = new T.Scene();
@@ -741,8 +745,8 @@ const View = (() => {
     camera.position.set(12, 15.5, 12);
     camera.lookAt(0, -0.4, 0);
 
-    scene.add(new T.HemisphereLight(0xfffbf0, 0x9a8ad8, 0.82));
-    const sun = new T.DirectionalLight(0xfff1d6, 0.62);
+    scene.add(new T.HemisphereLight(0xfff2dc, 0x3a2a1a, 0.7));
+    const sun = new T.DirectionalLight(0xffdfb0, 1.05);
     sun.position.set(-5, 12, 7);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
