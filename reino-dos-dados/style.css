@@ -295,3 +295,74 @@ select, input { background: #1e1812; border: 1px solid #6b5532; }
 /* miniaturas: zoom no rosto dentro dos círculos */
 .av .chimg:not(.big) { transform: scale(1.7); transform-origin: 50% 6%; }
 .seat .av, .pcard .av { background: radial-gradient(circle at 50% 30%, #f4ead3, #cdbb94) !important; }
+
+/* ---------- celular deitado (tela baixa) ---------- */
+@media (orientation: landscape) and (max-height: 560px) {
+  #game .pcard { width: 200px; padding: 5px 10px 5px 6px; column-gap: 8px; border-radius: 12px; }
+  #game .pcard .av { width: 40px; height: 40px; }
+  #game .pcard .nm { font-size: .8rem; }
+  #game .pcard .mn { font-size: 1.05rem; }
+  #game .pcard .st { font-size: .65rem; }
+  #game .pcard .vez { top: -8px; font-size: .6rem; }
+  #game .pcard.c0, #game .pcard.c1 { top: calc(env(safe-area-inset-top, 0px) + 6px); }
+  #game .pcard.c2, #game .pcard.c3 { bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); }
+  #game .pcard.c0, #game .pcard.c3 { left: max(8px, env(safe-area-inset-left, 0px)); }
+  #game .pcard.c1, #game .pcard.c2 { right: max(8px, env(safe-area-inset-right, 0px)); }
+  #game .tools {
+    left: max(8px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%); flex-direction: column;
+  }
+  #game .tools .icon { padding: 6px 9px; }
+  #game #info {
+    left: auto; right: max(8px, env(safe-area-inset-right, 0px)); top: 50%; bottom: auto; transform: translateY(-50%);
+    width: 128px; min-width: 0; padding: 6px 10px;
+  }
+  #game #info .ctop { flex-direction: column; align-items: flex-start; gap: 2px; }
+  #game #info #log { display: none; }
+  #game #controls { width: 170px; }
+  #game #controls #btnRoll { font-size: 1rem; padding: 7px 22px; }
+  #game #controls .zones { font-size: .6rem; }
+  #toast { font-size: .9rem; padding: 8px 14px; }
+  #modalCard { max-height: 94dvh; padding: 12px; }
+  #modalCard h2 { font-size: 1rem; }
+  #modalCard .btns { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+  #modalCard .btns button { padding: 8px 10px; font-size: .9rem; }
+  #modalCard .info { font-size: .8rem; }
+  .chimg.big { height: 100px; }
+}
+
+/* ---------- aviso para girar o celular ---------- */
+#rotate { display: none; }
+@media (orientation: portrait) and (max-width: 600px) and (pointer: coarse) {
+  body:not(.allow-portrait) #game:not(.hidden) ~ #rotate {
+    display: grid; place-items: center; position: fixed; inset: 0; z-index: 60; padding: 24px;
+    background: #14100cf2;
+  }
+}
+.rot-card { text-align: center; max-width: 300px; display: grid; gap: 14px; justify-items: center; }
+.rot-icon { font-size: 3rem; color: var(--gold); animation: rot 2s ease-in-out infinite; }
+@keyframes rot { 50% { transform: rotate(-90deg); } }
+.rot-card p { margin: 0; color: var(--txt); }
+
+/* celular deitado: janela em duas colunas (informações | botões) e números menores */
+@media (orientation: landscape) and (max-height: 560px) {
+  #modalCard {
+    width: min(820px, 96vw); display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 16px; align-items: start;
+  }
+  #modalCard h2 { grid-column: 1 / -1; margin-bottom: 4px; }
+  #modalCard .body { min-width: 0; }
+  #modalCard .body p { margin: 6px 0; font-size: .85rem; }
+  #modalCard .info td { padding: 2px 4px; }
+  #modalCard .btns { grid-template-columns: 1fr; margin-top: 0; align-self: center; }
+  #modalCard .card-magic { font-size: .95rem; }
+  #modalCard .card-magic .big-em { font-size: 2.2rem; }
+  #game #info .ctop #diceSum { font-size: .85rem; padding: 1px 8px; white-space: nowrap; }
+  #game #controls { gap: 4px; }
+  #game #controls #gauge { padding: 2px 8px 6px; }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  #game #info { top: calc(env(safe-area-inset-top, 0px) + 96px); transform: none; width: 150px; }
+  #game #controls.side { right: max(8px, env(safe-area-inset-right, 0px)); left: auto; transform: none; width: 150px; }
+  #game #controls.side #btnRoll { padding: 8px 10px; width: 100%; }
+  #game .tools { top: calc(env(safe-area-inset-top, 0px) + 96px); transform: none; }
+}

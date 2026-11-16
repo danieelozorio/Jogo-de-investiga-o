@@ -79,6 +79,7 @@ const CHARS = [
   { id: 'boto', pw: 'salary', n: 'Boto-cor-de-rosa', d: 'Charmoso: ganha 50% a mais ao passar pela Largada.' },
   { id: 'cuca', pw: 'luck', n: 'Cuca', d: 'Feiticeira: só tira Cartas da Lenda boas e fica menos tempo na Ilha.' },
   { id: 'boitata', pw: 'build', n: 'Boitatá', d: 'Fogo que forja: construir custa 20% menos.' },
+  { id: 'rosa', pw: 'aim', n: 'Rosa do Sertão', d: 'Cangaceira de mira certeira: os dados caem na zona da barra que você escolher muito mais vezes.' },
 ];
 const charOf = (p) => CHARS.find((c) => c.id === p.char) || CHARS[0];
 const pw = (p) => charOf(p).pw;
@@ -309,9 +310,9 @@ function tileInfo(i, viewer) {
 }
 
 /* ---------------- dados ---------------- */
-function rollDice(zone) {
+function rollDice(zone, p) {
   const rng = [[2, 6], [6, 8], [8, 12]];
-  const bias = zone >= 0 && Math.random() < 0.6;
+  const bias = zone >= 0 && Math.random() < (p && pw(p) === 'aim' ? 0.9 : 0.6);
   let a = 1;
   let b = 1;
   for (let t = 0; t < 80; t++) {
@@ -361,7 +362,7 @@ function waitHumanRoll() {
 async function getRoll(p) {
   let zone;
   if (p.bot) { await sleep(450); zone = rnd(3); } else zone = await waitHumanRoll();
-  const [a, b] = rollDice(zone);
+  const [a, b] = rollDice(zone, p);
   $('#diceSum').classList.add('hidden');
   await View.roll(a, b, sfx.dice);
   const ds = $('#diceSum');
@@ -806,7 +807,19 @@ function onTile(i) {
   $('#modal').classList.remove('hidden');
 }
 
+function goLandscape() {
+  // no celular: tenta tela cheia e travar na horizontal (nem todo navegador deixa)
+  if (!matchMedia('(pointer: coarse)').matches) return;
+  const el = document.documentElement;
+  const fs = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!fs || document.fullscreenElement) return;
+  try {
+    Promise.resolve(fs.call(el)).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(() => {});
+  } catch (e) { /* sem tela cheia */ }
+}
+
 function startGame(state) {
+  goLandscape();
   if (typeof THREE === 'undefined') {
     ask('Ops', '<p>O motor 3D não carregou. Confira a internet e recarregue a página.</p>', [{ label: 'OK', value: 1 }]);
     return;
@@ -830,10 +843,19 @@ function startGame(state) {
       // tela deitada: tabuleiro usa a altura toda; o botão de rolar fica na praça, logo abaixo dos dados
       const tools = $('.tools').getBoundingClientRect();
       const info = $('#info').getBoundingClientRect();
-      View.setInsets({ top: tools.bottom + 4, bottom: h - info.top + 4 });
-      const p = View.screenPos(0.8, 0.25, 0.8);
-      ctl.style.left = p.x + 'px';
-      ctl.style.top = p.y + 'px';
+      const top = tools.top < h * 0.2 ? tools.bottom + 4 : 6;
+      const bottom = info.bottom > h * 0.8 ? h - info.top + 4 : 6;
+      View.setInsets({ top, bottom });
+      if (h < 560) { // celular deitado: coluna da direita, embaixo da caixa de vez/rodada
+        ctl.classList.add('side');
+        ctl.style.left = '';
+        ctl.style.top = (info.bottom + 8) + 'px';
+      } else {
+        ctl.classList.remove('side');
+        const p = View.screenPos(0.8, 0.25, 0.8);
+        ctl.style.left = p.x + 'px';
+        ctl.style.top = p.y + 'px';
+      }
       ctl.style.bottom = '';
     } else {
       // tela em pé: cartões em cima e embaixo, botão logo acima dos cartões de baixo
@@ -876,6 +898,8 @@ $('#btnQuit').onclick = async () => {
     [{ label: 'Sair', value: 1 }, { label: 'Voltar ao jogo', value: 0, cls: 'ghost' }]);
   if (v) location.reload();
 };
+
+$('#btnPortrait').onclick = () => document.body.classList.add('allow-portrait');
 
 renderSeats();
 if (loadSave()) $('#continueBox').classList.remove('hidden');

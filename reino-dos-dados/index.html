@@ -7,6 +7,9 @@
   <meta name="description" content="Jogo de tabuleiro com as lendas do folclore brasileiro: role os dados, compre terras e cobre pedágio dos rivais.">
   <meta name="theme-color" content="#14100c">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
@@ -87,6 +90,14 @@
       <button id="btnRoll" class="hidden">🎲 Rolar</button>
     </div>
   </section>
+
+  <div id="rotate">
+    <div class="rot-card">
+      <div class="rot-icon">📱↻</div>
+      <p><b>Gire o celular</b><br>O Reino dos Dados foi feito para jogar com a tela deitada.</p>
+      <button id="btnPortrait" class="ghost">Jogar em pé mesmo assim</button>
+    </div>
+  </div>
 
   <div id="modal" class="hidden"><div id="modalCard"></div></div>
 

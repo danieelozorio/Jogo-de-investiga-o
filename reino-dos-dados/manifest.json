@@ -1,0 +1,10 @@
+{
+  "name": "Reino dos Dados",
+  "short_name": "Reino dos Dados",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#14100c",
+  "theme_color": "#14100c",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
