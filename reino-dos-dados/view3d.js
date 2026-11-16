@@ -6,6 +6,7 @@ const View = (() => {
   const T = THREE;
   let renderer, scene, camera, canvas, clock;
   let fast = () => false;
+  let imgUrl = (n) => `img/${n}.webp`;
   let onTile = () => {};
   const tiles = []; // { group, top, label, canvas, ctx, tex, slot, key, building, bkey }
   const tokens = []; // { group, ring, base: Vector3, hop }
@@ -69,43 +70,35 @@ const View = (() => {
     rock.rotation.set(Math.PI, Math.PI / 8, 0);
     rock.position.y = -3.4;
     scene.add(rock);
-    const grass = mesh(new T.CylinderGeometry(6.5, 6.4, 0.35, 8, 1), mat(0x7ccf5a), false);
+    const grass = mesh(new T.CylinderGeometry(6.5, 6.4, 0.35, 8, 1), mat(0x69c94b), false);
     grass.rotation.y = Math.PI / 8;
     grass.position.y = -0.18;
     grass.receiveShadow = true;
     scene.add(grass);
 
-    // moldura do tabuleiro
-    const frame = mesh(new T.BoxGeometry(8.5, 0.22, 8.5), mat(0xf3d08a), false);
-    frame.position.y = 0.0;
+    // moldura de madeira + mapa ilustrado no centro
+    const frame = mesh(new T.BoxGeometry(8.7, 0.24, 8.7), mat(0xb7793f), false);
+    frame.position.y = -0.01;
     scene.add(frame);
-    const inner = mesh(new T.BoxGeometry(5.9, 0.26, 5.9), mat(0x9be07a), false);
-    inner.position.y = 0.02;
-    scene.add(inner);
+    const rim = mesh(new T.BoxGeometry(8.36, 0.1, 8.36), mat(0x7a4a22), false);
+    rim.position.y = 0.07;
+    scene.add(rim);
+    const mapTex = new T.TextureLoader().load(imgUrl('tabuleiro'));
+    mapTex.encoding = T.sRGBEncoding;
+    mapTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const map = new T.Mesh(new T.PlaneGeometry(6.02, 6.02), new T.MeshLambertMaterial({ map: mapTex, color: 0xffffff }));
+    map.rotation.x = -Math.PI / 2;
+    map.position.y = 0.19;
+    map.receiveShadow = true;
+    scene.add(map);
 
-    // lago no meio
-    const lake = mesh(new T.CylinderGeometry(1.15, 1.15, 0.05, 32), matStd(0x5cc8f0, { roughness: 0.2, metalness: 0.1 }), false);
-    lake.position.set(0, 0.16, 0);
-    lake.scale.z = 0.8;
-    scene.add(lake);
-    const sand = mesh(new T.CylinderGeometry(1.35, 1.35, 0.04, 32), mat(0xf6e2a8), false);
-    sand.position.set(0, 0.15, 0);
-    sand.scale.z = 0.8;
-    scene.add(sand);
-
-    // árvores e flores dentro do anel
-    const spots = [[-2.2, -2.2], [-2.3, 0.4], [-1.6, 2.1], [2.2, -2.3], [0.3, -2.4], [2.3, 0.2], [1.8, 2.2], [-0.6, 2.4], [-2.4, -1.0], [2.4, -1.2], [1.0, -1.7], [-1.2, -1.6]];
-    spots.forEach(([x, z], k) => {
-      const tree = makeTree(k % 3 === 0 ? 0x3fa34d : k % 3 === 1 ? 0x58b947 : 0x2f8f5b, 0.7 + (k % 4) * 0.12);
-      tree.position.set(x, 0.15, z);
+    // mata em volta do tabuleiro
+    for (let k = 0; k < 22; k++) {
+      const a2 = (k / 22) * Math.PI * 2 + 0.2;
+      const r = 5.6 + (k % 3) * 0.28;
+      const tree = makeTree([0x2f9e44, 0x37b24d, 0x2b8a3e][k % 3], 0.9 + (k % 4) * 0.15);
+      tree.position.set(Math.cos(a2) * r, -0.02, Math.sin(a2) * r);
       scene.add(tree);
-    });
-    for (let k = 0; k < 26; k++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 1.5 + Math.random() * 1.2;
-      const f = mesh(new T.SphereGeometry(0.05, 6, 4), mat([0xff7eb6, 0xffe066, 0xffffff, 0xb983ff][k % 4]), false);
-      f.position.set(Math.cos(a) * r, 0.18, Math.sin(a) * r * 0.9);
-      scene.add(f);
     }
 
     // nuvens ao redor
@@ -151,7 +144,7 @@ const View = (() => {
       const p = tilePos(i);
       group.position.set(p.x, 0, p.z);
       const corner = i % 7 === 0;
-      const base = mesh(new T.BoxGeometry(0.94, 0.16, 0.94), mat(corner ? 0xffd66b : 0xfff3dd), false);
+      const base = mesh(new T.BoxGeometry(0.95, 0.16, 0.95), mat(corner ? 0xf5b93a : 0xf4e3c1), false);
       base.position.y = 0.11;
       base.receiveShadow = true;
       group.add(base);
@@ -387,79 +380,48 @@ const View = (() => {
       const b2 = mesh(new T.CylinderGeometry(0.15, 0.1, 0.06, 12), mat(0xe2e8f0)); b2.position.y = 0.4; g.add(b2);
       const jet = new T.Mesh(new T.SphereGeometry(0.08, 10, 8), new T.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.8 })); jet.position.y = 0.5; g.add(jet);
       spinners.push((t) => { jet.scale.y = 1 + Math.sin(t * 6) * 0.3; });
-    } else if (name === 20) { // pirâmide
-      const p = mesh(new T.ConeGeometry(0.4, 0.55, 4), mat(0xfbbf24)); p.position.y = 0.28; p.rotation.y = Math.PI / 4; g.add(p);
-      const tip = mesh(new T.OctahedronGeometry(0.06), matStd(0x67e8f9, { emissive: 0x06b6d4, emissiveIntensity: 0.7 })); tip.position.y = 0.66; g.add(tip);
-      spinners.push((t) => { tip.rotation.y = t * 2; });
-    } else { // torre do relógio
-      const tw = mesh(new T.BoxGeometry(0.24, 0.62, 0.24), mat(0xfde4cf)); tw.position.y = 0.31; g.add(tw);
-      const roof = mesh(new T.ConeGeometry(0.22, 0.24, 4), mat(0x2563eb)); roof.position.y = 0.74; roof.rotation.y = Math.PI / 4; g.add(roof);
-      const face = mesh(new T.CircleGeometry(0.08, 16), mat(0xffffff), false); face.position.set(0, 0.5, 0.122); g.add(face);
-      const hand = mesh(new T.BoxGeometry(0.01, 0.06, 0.005), mat(0x111111), false); hand.position.set(0, 0.5, 0.126); g.add(hand);
-      const face2 = face.clone(); face2.position.set(0.122, 0.5, 0); face2.rotation.y = Math.PI / 2; g.add(face2);
-      const hand2 = hand.clone(); hand2.position.set(0.126, 0.5, 0); hand2.rotation.y = Math.PI / 2; g.add(hand2);
-      spinners.push((t) => { hand.rotation.z = -t; hand2.rotation.x = t; });
+    } else if (name === 20) { // pedra encantada
+      const r1 = mesh(new T.DodecahedronGeometry(0.3, 0), mat(0xc2703a)); r1.position.set(-0.05, 0.24, 0); r1.scale.y = 1.25; g.add(r1);
+      const r2 = mesh(new T.DodecahedronGeometry(0.18, 0), mat(0xa85a2a)); r2.position.set(0.22, 0.14, 0.12); g.add(r2);
+      const tip = mesh(new T.OctahedronGeometry(0.07), matStd(0x67e8f9, { emissive: 0x06b6d4, emissiveIntensity: 0.8 })); tip.position.set(-0.05, 0.78, 0); g.add(tip);
+      spinners.push((t) => { tip.rotation.y = t * 2; tip.position.y = 0.78 + Math.sin(t * 2.5) * 0.04; });
+    } else { // farol
+      const rock = mesh(new T.CylinderGeometry(0.3, 0.36, 0.1, 10), mat(0x9ca3af)); rock.position.y = 0.05; g.add(rock);
+      [0xffffff, 0xef4444, 0xffffff, 0xef4444].forEach((c, k) => {
+        const seg = mesh(new T.CylinderGeometry(0.15 - k * 0.018, 0.168 - k * 0.018, 0.17, 12), mat(c)); seg.position.y = 0.185 + k * 0.17; g.add(seg);
+      });
+      const lamp = mesh(new T.CylinderGeometry(0.09, 0.09, 0.1, 10), matStd(0xfde047, { emissive: 0xfacc15, emissiveIntensity: 0.9 })); lamp.position.y = 0.83; g.add(lamp);
+      const cap = mesh(new T.ConeGeometry(0.13, 0.12, 10), mat(0x1e3a8a)); cap.position.y = 0.94; g.add(cap);
+      const beam = new T.Mesh(new T.ConeGeometry(0.16, 0.7, 12, 1, true), new T.MeshBasicMaterial({ color: 0xfff3a0, transparent: true, opacity: 0.35, side: T.DoubleSide, depthWrite: false }));
+      beam.rotation.z = Math.PI / 2; beam.position.set(0.38, 0, 0);
+      const piv = new T.Group(); piv.position.y = 0.83; piv.add(beam); g.add(piv);
+      spinners.push((t) => { piv.rotation.y = t * 1.5; });
     }
     return g;
   }
 
-  /* ---------- personagens (miniaturas) ---------- */
-  const CHAR_LOOK = {
-    lua: { body: 0x7c3aed, skin: 0xffe0c7 },
-    bento: { body: 0x334155, skin: 0xf5c9a0 },
-    faisca: { body: 0x22c55e, skin: 0x4ade80 },
-    mel: { body: 0xf472b6, skin: 0xffe4d6 },
-    tonho: { body: 0x94a3b8, skin: 0xf5d0b0 },
-    coruja: { body: 0x92400e, skin: 0xd6a36b },
-  };
+  /* ---------- personagens: figuras ilustradas em pé ---------- */
   function makeFigure(char, color) {
-    const look = CHAR_LOOK[char] || CHAR_LOOK.lua;
     const g = new T.Group();
-    const base = mesh(new T.CylinderGeometry(0.17, 0.19, 0.06, 20), matStd(color, { metalness: 0.2 }));
+    const base = mesh(new T.CylinderGeometry(0.2, 0.22, 0.06, 24), matStd(color, { metalness: 0.25, roughness: 0.4 }));
     base.position.y = 0.03;
     g.add(base);
-    const body = mesh(new T.CylinderGeometry(0.08, 0.14, 0.24, 12), mat(look.body));
-    body.position.y = 0.18;
-    g.add(body);
-    const head = mesh(new T.SphereGeometry(0.13, 16, 12), mat(look.skin));
-    head.position.y = 0.4;
-    g.add(head);
-    const eyeM = mat(0x1f1235);
-    const eyeG = new T.SphereGeometry(char === 'coruja' ? 0.035 : 0.022, 8, 6);
-    [-0.045, 0.045].forEach((x) => {
-      if (char === 'coruja') { const w = mesh(new T.SphereGeometry(0.05, 10, 8), mat(0xffffff), false); w.position.set(x * 1.3, 0.42, 0.1); g.add(w); }
-      const e = mesh(eyeG, eyeM, false);
-      e.position.set(char === 'coruja' ? x * 1.3 : x, 0.42, char === 'coruja' ? 0.14 : 0.12);
-      g.add(e);
+    const top = mesh(new T.CylinderGeometry(0.16, 0.16, 0.02, 24), mat(0xffffff), false);
+    top.position.y = 0.065;
+    g.add(top);
+    const m = new T.SpriteMaterial({ transparent: true, alphaTest: 0.35, depthWrite: true });
+    const sp = new T.Sprite(m);
+    sp.center.set(0.5, 0.04);
+    sp.position.y = 0.06;
+    sp.scale.set(0.9, 0.9, 1);
+    new T.TextureLoader().load(imgUrl(char), (tex) => {
+      tex.encoding = T.sRGBEncoding;
+      m.map = tex;
+      m.needsUpdate = true;
+      const h = 1.05;
+      sp.scale.set(h * tex.image.width / tex.image.height, h, 1);
     });
-    const blush = mat(0xff9db5);
-    [-0.08, 0.08].forEach((x) => { const b = mesh(new T.SphereGeometry(0.02, 6, 4), blush, false); b.position.set(x, 0.37, 0.105); b.scale.z = 0.4; g.add(b); });
-
-    if (char === 'lua') {
-      const brim = mesh(new T.CylinderGeometry(0.2, 0.2, 0.02, 20), mat(0x4c1d95)); brim.position.y = 0.5; g.add(brim);
-      const hat = mesh(new T.ConeGeometry(0.12, 0.32, 14), mat(0x5b21b6)); hat.position.set(0, 0.67, -0.02); hat.rotation.x = -0.25; g.add(hat);
-      const star = mesh(new T.OctahedronGeometry(0.03), mat(0xfde047), false); star.position.set(0, 0.6, 0.09); g.add(star);
-    } else if (char === 'bento') {
-      const hat = mesh(new T.CylinderGeometry(0.16, 0.18, 0.08, 3), mat(0x111827)); hat.position.y = 0.52; hat.rotation.y = Math.PI / 6 + Math.PI; g.add(hat);
-      const skull = mesh(new T.SphereGeometry(0.025, 6, 4), mat(0xffffff), false); skull.position.set(0, 0.53, 0.1); g.add(skull);
-      const patch = mesh(new T.BoxGeometry(0.05, 0.04, 0.01), mat(0x111827), false); patch.position.set(0.045, 0.42, 0.125); g.add(patch);
-    } else if (char === 'faisca') {
-      [-0.07, 0.07].forEach((x) => { const h = mesh(new T.ConeGeometry(0.03, 0.1, 6), mat(0xfde047)); h.position.set(x, 0.54, 0); h.rotation.z = -x * 3; g.add(h); });
-      [-1, 1].forEach((s) => { const w = mesh(new T.ConeGeometry(0.08, 0.2, 3), mat(0x16a34a)); w.position.set(s * 0.14, 0.25, -0.06); w.rotation.z = s * 1.1; g.add(w); });
-      const tail = mesh(new T.ConeGeometry(0.04, 0.18, 6), mat(0x16a34a)); tail.position.set(0, 0.1, -0.15); tail.rotation.x = -1.2; g.add(tail);
-    } else if (char === 'mel') {
-      const wm = new T.MeshLambertMaterial({ color: 0xa5f3fc, transparent: true, opacity: 0.75, side: T.DoubleSide });
-      [-1, 1].forEach((s) => { const w = new T.Mesh(new T.CircleGeometry(0.12, 12), wm); w.position.set(s * 0.11, 0.3, -0.08); w.rotation.y = s * 0.6; w.scale.y = 1.4; g.add(w); spinners.push((t) => { w.rotation.y = s * (0.6 + Math.sin(t * 12) * 0.3); }); });
-      const hair = mesh(new T.SphereGeometry(0.135, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xfbbf24)); hair.position.y = 0.41; hair.rotation.x = -0.3; g.add(hair);
-    } else if (char === 'tonho') {
-      const helm = mesh(new T.SphereGeometry(0.145, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), matStd(0xcbd5e1, { metalness: 0.6, roughness: 0.3 })); helm.position.y = 0.42; helm.rotation.x = -0.25; g.add(helm);
-      const plume = mesh(new T.ConeGeometry(0.04, 0.16, 6), mat(0xef4444)); plume.position.set(0, 0.6, -0.03); g.add(plume);
-      const shield = mesh(new T.CylinderGeometry(0.08, 0.08, 0.02, 12), mat(0x2563eb)); shield.rotation.z = Math.PI / 2; shield.position.set(0.15, 0.2, 0.02); g.add(shield);
-    } else if (char === 'coruja') {
-      [-0.07, 0.07].forEach((x) => { const e = mesh(new T.ConeGeometry(0.04, 0.1, 4), mat(0x78350f)); e.position.set(x, 0.54, 0); g.add(e); });
-      const beak = mesh(new T.ConeGeometry(0.02, 0.05, 4), mat(0xf59e0b), false); beak.position.set(0, 0.38, 0.13); beak.rotation.x = Math.PI / 2 + 0.6; g.add(beak);
-    }
-    g.rotation.y = Math.PI / 4; // olha para a câmera
+    g.add(sp);
     return g;
   }
 
@@ -737,6 +699,7 @@ const View = (() => {
   function init(opts) {
     canvas = opts.canvas;
     fast = opts.fast || fast;
+    imgUrl = opts.img || imgUrl;
     onTile = opts.onTile || onTile;
     renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -748,8 +711,8 @@ const View = (() => {
     camera.position.set(12, 15.5, 12);
     camera.lookAt(0, -0.4, 0);
 
-    scene.add(new T.HemisphereLight(0xfff7e8, 0x8b7bd8, 0.75));
-    const sun = new T.DirectionalLight(0xffffff, 0.75);
+    scene.add(new T.HemisphereLight(0xfffbf0, 0x9a8ad8, 0.82));
+    const sun = new T.DirectionalLight(0xfff1d6, 0.62);
     sun.position.set(-5, 12, 7);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -765,7 +728,6 @@ const View = (() => {
     opts.players.forEach((p) => {
       const group = new T.Group();
       const fig = makeFigure(p.char, new T.Color(p.color).getHex());
-      fig.scale.setScalar(1.3);
       const figWrap = new T.Group();
       figWrap.add(fig);
       group.add(figWrap);

@@ -21,45 +21,45 @@ const LVL_ICON = ['🚩', '🏠', '🏘️', '🏰', '✨'];
 const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'];
 
 const GROUPS = [
-  { n: 'Vila dos Doces', c: '#f472b6', p: 60 },
-  { n: 'Bosque dos Cogumelos', c: '#84cc16', p: 80 },
-  { n: 'Lagoa dos Sapos', c: '#06b6d4', p: 100 },
-  { n: 'Vale das Fadas', c: '#a855f7', p: 120 },
-  { n: 'Porto Pirata', c: '#f97316', p: 150 },
-  { n: 'Deserto Dourado', c: '#eab308', p: 170 },
-  { n: 'Montanha do Dragão', c: '#dc2626', p: 200 },
-  { n: 'Castelo de Cristal', c: '#3b82f6', p: 240 },
+  { n: 'Amazônia · Beira-Rio', c: '#22c55e', p: 60 },
+  { n: 'Amazônia · Mata', c: '#15803d', p: 80 },
+  { n: 'Pantanal · Alagados', c: '#06b6d4', p: 100 },
+  { n: 'Pantanal · Fazendas', c: '#eab308', p: 120 },
+  { n: 'Sertão · Vilas', c: '#f97316', p: 150 },
+  { n: 'Sertão · Arraial', c: '#dc2626', p: 170 },
+  { n: 'Litoral · Praias', c: '#3b82f6', p: 200 },
+  { n: 'Litoral · Baía', c: '#a855f7', p: 240 },
 ];
 
 const B = [
   { t: 'start', n: 'Largada', s: 'Largada', e: '🏁' },
-  { t: 'prop', g: 0, n: 'Rua do Pirulito', e: '🍭' },
-  { t: 'prop', g: 0, n: 'Praça do Bombom', e: '🍬' },
-  { t: 'card', n: 'Carta Mágica', s: 'Carta', e: '🔮' },
-  { t: 'prop', g: 1, n: 'Trilha do Musgo', e: '🍄' },
-  { t: 'prop', g: 1, n: 'Toca do Coelho', e: '🐇' },
-  { t: 'attr', n: 'Roda-Gigante Estelar', e: '🎡' },
+  { t: 'prop', g: 0, n: 'Igarapé das Vitórias-Régias', e: '🪷' },
+  { t: 'prop', g: 0, n: 'Palafita do Pescador', e: '🛶' },
+  { t: 'card', n: 'Carta da Lenda', s: 'Lenda', e: '🔮' },
+  { t: 'prop', g: 1, n: 'Trilha do Curupira', e: '🌳' },
+  { t: 'prop', g: 1, n: 'Aldeia da Castanheira', e: '🦜' },
+  { t: 'attr', n: 'Roda-Gigante de Parintins', e: '🎡' },
   { t: 'island', n: 'Ilha Perdida', s: 'Ilha', e: '🏝️' },
-  { t: 'prop', g: 2, n: 'Ponte das Vitórias-Régias', e: '🪷' },
-  { t: 'prop', g: 2, n: 'Cais dos Sapos', e: '🐸' },
-  { t: 'card', n: 'Carta Mágica', s: 'Carta', e: '🔮' },
-  { t: 'prop', g: 3, n: 'Jardim das Fadas', e: '🌸' },
-  { t: 'prop', g: 3, n: 'Cascata Brilhante', e: '💧' },
-  { t: 'attr', n: 'Fonte dos Desejos', e: '⛲' },
-  { t: 'festival', n: 'Festival', s: 'Festival', e: '🎪' },
-  { t: 'prop', g: 4, n: 'Taverna do Papagaio', e: '🦜' },
-  { t: 'prop', g: 4, n: 'Estaleiro da Âncora', e: '⚓' },
-  { t: 'tax', n: 'Coletor do Rei', s: 'Imposto', e: '💰' },
-  { t: 'prop', g: 5, n: 'Oásis das Tâmaras', e: '🌴' },
-  { t: 'prop', g: 5, n: 'Dunas Cantantes', e: '🐪' },
-  { t: 'attr', n: 'Pirâmide dos Ventos', e: '🔺' },
-  { t: 'portal', n: 'Portal Mágico', s: 'Portal', e: '🌀' },
-  { t: 'prop', g: 6, n: 'Ninho de Fogo', e: '🔥' },
-  { t: 'prop', g: 6, n: 'Caverna do Tesouro', e: '💎' },
-  { t: 'card', n: 'Carta Mágica', s: 'Carta', e: '🔮' },
-  { t: 'prop', g: 7, n: 'Salão dos Espelhos', e: '🪞' },
-  { t: 'prop', g: 7, n: 'Trono de Cristal', e: '👑' },
-  { t: 'attr', n: 'Torre do Relógio', e: '🕰️' },
+  { t: 'prop', g: 2, n: 'Ninho do Tuiuiú', e: '🦩' },
+  { t: 'prop', g: 2, n: 'Lagoa das Capivaras', e: '🐾' },
+  { t: 'card', n: 'Carta da Lenda', s: 'Lenda', e: '🔮' },
+  { t: 'prop', g: 3, n: 'Fazenda do Ipê Amarelo', e: '🌼' },
+  { t: 'prop', g: 3, n: 'Trilha da Onça', e: '🐆' },
+  { t: 'attr', n: 'Fonte das Águas Claras', e: '⛲' },
+  { t: 'festival', n: 'Festa Junina', s: 'Festa', e: '🎪' },
+  { t: 'prop', g: 4, n: 'Vila do Mandacaru', e: '🌵' },
+  { t: 'prop', g: 4, n: 'Feira do Cordel', e: '📜' },
+  { t: 'tax', n: 'Imposto do Coronel', s: 'Imposto', e: '💰' },
+  { t: 'prop', g: 5, n: 'Açude Velho', e: '💧' },
+  { t: 'prop', g: 5, n: 'Arraial do Forró', e: '🪗' },
+  { t: 'attr', n: 'Pedra Encantada', e: '⛰️' },
+  { t: 'portal', n: 'Redemoinho do Saci', s: 'Redemoinho', e: '🌀' },
+  { t: 'prop', g: 6, n: 'Vila dos Jangadeiros', e: '⛵' },
+  { t: 'prop', g: 6, n: 'Coqueiral', e: '🥥' },
+  { t: 'card', n: 'Carta da Lenda', s: 'Lenda', e: '🔮' },
+  { t: 'prop', g: 7, n: 'Dunas Douradas', e: '🏖️' },
+  { t: 'prop', g: 7, n: 'Baía dos Botos', e: '🐬' },
+  { t: 'attr', n: 'Farol do Litoral', e: '🗼' },
 ];
 const N = B.length;
 const ISLAND = 7;
@@ -73,18 +73,20 @@ const SIDES = [[1, 6], [8, 13], [15, 20], [22, 27]].map(([a, z]) => {
 });
 
 const CHARS = [
-  { id: 'lua', e: '🧙‍♀️', n: 'Lua, a Feiticeira', d: 'Seus pedágios rendem 20% a mais.' },
-  { id: 'bento', e: '🏴‍☠️', n: 'Bento, o Pirata', d: 'Tomar terras dos rivais custa 30% menos.' },
-  { id: 'faisca', e: '🐉', n: 'Faísca, o Dragãozinho', d: 'Ganha 50% a mais ao passar pela Largada.' },
-  { id: 'mel', e: '🧚', n: 'Mel, a Fada', d: 'Paga 20% menos de pedágio.' },
-  { id: 'tonho', e: '🛡️', n: 'Tonho, o Cavaleiro', d: 'Construir custa 20% menos.' },
-  { id: 'coruja', e: '🦉', n: 'Dona Coruja', d: 'Só tira Cartas Mágicas boas e fica menos tempo na Ilha.' },
+  { id: 'saci', pw: 'steal', n: 'Saci-Pererê', d: 'Travesso: tomar terras dos rivais custa 30% menos.' },
+  { id: 'iara', pw: 'toll', n: 'Iara', d: 'Encanto das águas: seus pedágios rendem 20% a mais.' },
+  { id: 'curupira', pw: 'discount', n: 'Curupira', d: 'Conhece os atalhos da mata: paga 20% menos de pedágio.' },
+  { id: 'boto', pw: 'salary', n: 'Boto-cor-de-rosa', d: 'Charmoso: ganha 50% a mais ao passar pela Largada.' },
+  { id: 'cuca', pw: 'luck', n: 'Cuca', d: 'Feiticeira: só tira Cartas da Lenda boas e fica menos tempo na Ilha.' },
+  { id: 'boitata', pw: 'build', n: 'Boitatá', d: 'Fogo que forja: construir custa 20% menos.' },
 ];
-const charOf = (p) => CHARS.find((c) => c.id === p.char);
+const charOf = (p) => CHARS.find((c) => c.id === p.char) || CHARS[0];
+const pw = (p) => charOf(p).pw;
+const charImg = (id, cls = '') => `<img class="chimg ${cls}" src="img/${id}.webp" alt="">`;
 
 /* ---------------- estado ---------------- */
 let S = null; // estado salvo
-const KEY = 'reinoDosDados.save.v1';
+const KEY = 'reinoDosDados.save.v2';
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sem storage */ } }
 function loadSave() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
 function clearSave() { try { localStorage.removeItem(KEY); } catch (e) { /* ok */ } }
@@ -94,7 +96,7 @@ function stepCost(i, lvl, p) {
   const pr = price(i);
   if (lvl === 0) return pr;
   let c = lvl === 4 ? pr : pr * 0.5;
-  if (p && p.char === 'tonho') c *= 0.8;
+  if (p && pw(p) === 'build') c *= 0.8;
   return Math.round(c);
 }
 function costTo(i, from, to, p) { let s = 0; for (let l = from; l <= to; l++) s += stepCost(i, l, p); return s; }
@@ -119,11 +121,11 @@ function toll(i, payer) {
     if (groupComplete(B[i].g, T.owner)) v *= 1.5;
   }
   if (S.festival === i) v *= 2;
-  if (o.char === 'lua') v *= 1.2;
-  if (payer && payer.char === 'mel') v *= 0.8;
+  if (pw(o) === 'toll') v *= 1.2;
+  if (payer && pw(payer) === 'discount') v *= 0.8;
   return Math.round(v / 5) * 5;
 }
-const takeoverCost = (i, p) => Math.round(S.tiles[i].inv * 2 * (p.char === 'bento' ? 0.7 : 1));
+const takeoverCost = (i, p) => Math.round(S.tiles[i].inv * 2 * (pw(p) === 'steal' ? 0.7 : 1));
 
 /* ---------------- som ---------------- */
 let AC = null;
@@ -179,14 +181,15 @@ function tileView(i) {
   const b = B[i];
   const T = S.tiles[i];
   const corner = i % 7 === 0;
-  const d = { bg: corner ? '#ffe08a' : isBuyable(i) ? '#fff6e6' : '#efe4ff', text: b.s || '', big: corner };
+  const biome = ['#e9f9d8', '#dff5f7', '#ffe9cf', '#e1ecff'][Math.min(3, Math.floor((i - 1) / 7))];
+  const d = { bg: corner ? '#ffd65c' : isBuyable(i) ? biome : '#f1e6ff', text: b.s || '', big: corner };
   if (b.t === 'prop') { d.band = GROUPS[b.g].c; d.emoji = b.e; }
   if (b.t === 'attr') d.band = '#c084fc';
   if (isBuyable(i)) {
     if (T.owner >= 0) {
       const o = S.players[T.owner];
       d.owner = o.color;
-      d.bg = mixHex('#fff6e6', o.color, 0.28);
+      d.bg = mixHex(biome, o.color, 0.3);
       d.text = Math.round(toll(i, null)).toLocaleString('pt-BR');
       d.dimEmoji = true;
     } else d.text = String(price(i));
@@ -210,7 +213,7 @@ function renderPlayers() {
     const prev = lastMoney[p.idx];
     const ch = prev === undefined || prev === p.money ? '' : prev < p.money ? 'up' : 'down';
     return `<div class="pcard ${p.idx === S.turn ? 'cur' : ''} ${p.out ? 'out' : ''}">
-      <div class="av" style="border-color:${p.color}">${charOf(p).e}</div>
+      <div class="av" style="border-color:${p.color}">${charImg(p.char)}</div>
       <div class="nm">${esc(p.name)}${p.bot ? ' 🤖' : ''}</div>
       <div class="mn ${ch}">${fmt(p.money)}</div>
       <div class="st">${st.join(' ')}</div></div>`;
@@ -272,7 +275,7 @@ function tileInfo(i, viewer) {
   const b = B[i];
   const T = S.tiles[i];
   const rows = [];
-  if (b.t === 'prop') rows.push(['Reino', `<span class="chip" style="background:${GROUPS[b.g].c}"></span>${GROUPS[b.g].n}`]);
+  if (b.t === 'prop') rows.push(['Região', `<span class="chip" style="background:${GROUPS[b.g].c}"></span>${GROUPS[b.g].n}`]);
   if (b.t === 'attr') rows.push(['Tipo', 'Atração (pedágio dobra para cada atração do mesmo dono)']);
   if (isBuyable(i)) {
     rows.push(['Preço do terreno', fmt(price(i))]);
@@ -289,7 +292,7 @@ function tileInfo(i, viewer) {
   } else {
     const d = {
       start: `Passou por aqui, ganha ${fmt(SALARY)}.`,
-      card: 'Tire uma Carta Mágica: pode ser sorte ou azar.',
+      card: 'Tire uma Carta da Lenda: pode ser sorte ou azar.',
       island: `Fica presa até tirar dupla ou pagar ${fmt(ISLAND_FEE)}.`,
       festival: 'Escolha uma terra sua para cobrar pedágio em dobro.',
       portal: 'Na próxima vez, viaje para qualquer casa do tabuleiro.',
@@ -367,7 +370,7 @@ async function getRoll(p) {
 
 /* ---------------- movimento ---------------- */
 function passStart(p) {
-  const v = Math.round(SALARY * (p.char === 'faisca' ? 1.5 : 1));
+  const v = Math.round(SALARY * (pw(p) === 'salary' ? 1.5 : 1));
   p.money += v;
   p.laps++;
   log(`🏁 ${esc(p.name)} passou pela Largada: +${fmt(v)}`);
@@ -395,7 +398,7 @@ async function teleport(p, dest) {
 
 async function goIsland(p) {
   p.pos = ISLAND;
-  p.island = p.char === 'coruja' ? 1 : 2;
+  p.island = pw(p) === 'luck' ? 1 : 2;
   p.doubles = 0;
   sfx.bad();
   log(`🏝️ ${esc(p.name)} foi parar na Ilha Perdida`);
@@ -547,11 +550,11 @@ function quake(i) {
   T.lvl--;
 }
 const CARDS = [
-  { good: true, e: '💰', t: 'Um duende achou um baú de moedas! Ganhe 🪙150.', fx: async (p) => { p.money += 150; } },
-  { good: true, e: '🛡️', t: 'Escudo de Luz! O próximo pedágio que você teria que pagar é anulado.', fx: async (p) => { p.shield++; } },
-  { good: true, e: '🌬️', t: 'Vento mágico! Voe até a Largada.', fx: async (p) => { await moveSteps(p, (N - p.pos) % N || N); } },
-  { good: true, e: '🎟️', t: 'Bilhete do Portal! Na sua próxima vez, viaje para onde quiser.', fx: async (p) => { p.portal = true; } },
-  { good: true, e: '🎂', t: 'É seu aniversário no reino! Cada jogador te dá 🪙50.', fx: async (p) => { for (const o of alive()) if (o !== p) await pay(o, 50, p); } },
+  { good: true, e: '💰', t: 'Você achou um pote de ouro no fim do arco-íris! Ganhe 🪙150.', fx: async (p) => { p.money += 150; } },
+  { good: true, e: '🛡️', t: 'Amuleto de Muiraquitã! O próximo pedágio que você teria que pagar é anulado.', fx: async (p) => { p.shield++; } },
+  { good: true, e: '🌬️', t: 'O redemoinho do Saci te carregou até a Largada!', fx: async (p) => { await moveSteps(p, (N - p.pos) % N || N); } },
+  { good: true, e: '🎟️', t: 'O Saci te emprestou o redemoinho! Na sua próxima vez, viaje para onde quiser.', fx: async (p) => { p.portal = true; } },
+  { good: true, e: '🎂', t: 'Você é o noivo da quadrilha! Cada jogador te dá 🪙50 de presente.', fx: async (p) => { for (const o of alive()) if (o !== p) await pay(o, 50, p); } },
   {
     good: true, e: '🌋', t: 'Terremoto no rival! A maior construção do jogador mais rico perde um nível.',
     fx: async (p) => {
@@ -559,24 +562,24 @@ const CARDS = [
       for (const o of rich) { const i = highestBuilding(o.idx); if (i !== undefined) { quake(i); log(`🌋 ${B[i].n} de ${esc(o.name)} perdeu um nível`); return; } }
     },
   },
-  { good: false, e: '🤧', t: 'Uma bruxa espirrou no seu bolso! Pague 🪙100.', fx: async (p) => { await pay(p, 100, null); } },
-  { good: false, e: '🌪️', t: 'Redemoinho! Vá direto para a Ilha Perdida.', fx: async (p) => { await goIsland(p); } },
+  { good: false, e: '🤧', t: 'A Cuca cobrou caro pela poção. Pague 🪙100.', fx: async (p) => { await pay(p, 100, null); } },
+  { good: false, e: '🌪️', t: 'A enchente do rio te levou! Vá direto para a Ilha Perdida.', fx: async (p) => { await goIsland(p); } },
   {
     good: false, e: '🌋', t: 'Terremoto! Sua maior construção perde um nível.',
     fx: async (p) => { const i = highestBuilding(p.idx); if (i !== undefined) { quake(i); log(`🌋 ${B[i].n} perdeu um nível`); } },
   },
-  { good: false, e: '🐌', t: 'Um caracol gigante bloqueou o caminho. Volte 3 casas.', fx: async (p) => { await moveSteps(p, -3); await land(p); } },
+  { good: false, e: '🐌', t: 'A Mula sem Cabeça passou correndo e te assustou. Volte 3 casas.', fx: async (p) => { await moveSteps(p, -3); await land(p); } },
 ];
 
 async function drawCard(p) {
-  const pool = p.char === 'coruja' ? CARDS.filter((c) => c.good) : CARDS;
+  const pool = pw(p) === 'luck' ? CARDS.filter((c) => c.good) : CARDS;
   const c = pool[rnd(pool.length)];
   sfx.magic();
   View.sparkle(p.pos, 0xc4b5fd, 18);
   log(`🔮 ${esc(p.name)}: ${c.t}`);
   const html = `<div class="card-magic"><span class="big-em">${c.e}</span>${c.t}</div>`;
   if (p.bot) await toast(html, 1500);
-  else await ask('🔮 Carta Mágica', html, [{ label: 'OK', value: 1 }]);
+  else await ask('🔮 Carta da Lenda', html, [{ label: 'OK', value: 1 }]);
   await c.fx(p);
   render();
 }
@@ -594,8 +597,8 @@ async function land(p) {
       const owner = S.players[T.owner];
       if (p.shield > 0) {
         p.shield--;
-        log(`🛡️ O Escudo de Luz livrou ${esc(p.name)} do pedágio`);
-        await toast('🛡️ Escudo de Luz! Pedágio anulado.');
+        log(`🛡️ O Muiraquitã livrou ${esc(p.name)} do pedágio`);
+        await toast('🛡️ Muiraquitã! Pedágio anulado.');
       } else {
         const v = toll(i, p);
         log(`💸 ${esc(p.name)} pagou ${fmt(v)} de pedágio a ${esc(owner.name)}`);
@@ -612,7 +615,7 @@ async function land(p) {
   else if (b.t === 'island') await goIsland(p);
   else if (b.t === 'portal') {
     p.portal = true;
-    log(`🌀 ${esc(p.name)} entrou no Portal Mágico`);
+    log(`🌀 ${esc(p.name)} entrou no Redemoinho do Saci`);
     await toast('🌀 Na próxima vez você viaja pra onde quiser!');
   } else if (b.t === 'tax') {
     const v = Math.max(20, Math.round(assets(p) * 0.1 / 5) * 5);
@@ -627,13 +630,13 @@ async function land(p) {
 
 async function festival(p) {
   const mine = ownedBy(p.idx);
-  if (!mine.length) { log(`🎪 ${esc(p.name)} curtiu o Festival, mas não tem terras`); return; }
+  if (!mine.length) { log(`🎪 ${esc(p.name)} dançou na Festa Junina, mas não tem terras`); return; }
   let i;
   if (p.bot) i = mine.sort((a, b) => toll(b, null) - toll(a, null))[0];
-  else i = await pickTile('🎪 Escolha uma terra sua para o Festival (pedágio em dobro)', (j) => mine.includes(j));
+  else i = await pickTile('🎪 Escolha uma terra sua para a Festa Junina (pedágio em dobro)', (j) => mine.includes(j));
   S.festival = i;
   sfx.magic();
-  log(`🎉 Festival em ${B[i].n}! Pedágio em dobro`);
+  log(`🎉 Festa Junina em ${B[i].n}! Pedágio em dobro`);
   render();
 }
 
@@ -649,7 +652,7 @@ async function choosePortal(p) {
 /* ---------------- vitória ---------------- */
 async function checkMonopoly(p) {
   const full = GROUPS.filter((g, gi) => groupComplete(gi, p.idx)).length;
-  if (full >= 3) return endGame(p, 'Monopólio Triplo! Dominou 3 reinos inteiros.');
+  if (full >= 3) return endGame(p, 'Monopólio Triplo! Dominou 3 regiões inteiras.');
   if (SIDES.some((side) => side.every((j) => S.tiles[j].owner === p.idx))) return endGame(p, 'Monopólio de Linha! Dominou um lado inteiro do tabuleiro.');
   if (ATTRS.every((j) => S.tiles[j].owner === p.idx)) return endGame(p, 'Monopólio das Atrações! Dono das 4 atrações.');
 }
@@ -661,7 +664,7 @@ async function endGame(winner, why) {
   render();
   sfx.magic();
   const rank = [...S.players].sort((a, b) => (a.out - b.out) || assets(b) - assets(a));
-  const html = `<div class="card-magic"><span class="big-em">${charOf(winner).e}</span><b>${esc(winner.name)}</b> venceu!<br>${why}</div>
+  const html = `<div class="card-magic">${charImg(winner.char, "big")}<b>${esc(winner.name)}</b> venceu!<br>${why}</div>
     <ul class="rank">${rank.map((p, k) => `<li><span>${k + 1}º <span style="color:${p.color}">●</span> ${esc(p.name)}</span><span>${p.out ? 'falido' : fmt(assets(p))}</span></li>`).join('')}</ul>
     <p class="small">Patrimônio = moedas + valor investido nas terras.</p>`;
   window.__result = { winner: winner.name, why, rounds: S.round };
@@ -738,7 +741,7 @@ async function gameLoop() {
     save();
     render();
     if (!p.bot && S.players.filter((q) => !q.bot && !q.out).length > 1) {
-      await ask(`${charOf(p).e} Vez de ${esc(p.name)}`, '<p>Passe o celular para este jogador.</p>', [{ label: 'Estou pronto!', value: 1 }]);
+      await ask(`Vez de ${esc(p.name)}`, `${charImg(p.char, 'big')}<p>Passe o celular para este jogador.</p>`, [{ label: 'Estou pronto!', value: 1 }]);
     }
     await playTurn(p);
     if (S.over) break;
@@ -753,24 +756,24 @@ async function gameLoop() {
 
 /* ---------------- menu ---------------- */
 const seats = [
-  { type: 'human', name: 'Você', char: 'lua' },
-  { type: 'bot', name: 'Bot Bento', char: 'bento' },
-  { type: 'bot', name: 'Bot Mel', char: 'mel' },
-  { type: 'off', name: 'Bot Faísca', char: 'faisca' },
+  { type: 'human', name: 'Você', char: 'saci' },
+  { type: 'bot', name: 'Bot Iara', char: 'iara' },
+  { type: 'bot', name: 'Bot Curupira', char: 'curupira' },
+  { type: 'off', name: 'Bot Boto', char: 'boto' },
 ];
 
 function renderSeats() {
   $('#seats').innerHTML = seats.map((s, k) => {
     const ch = CHARS.find((c) => c.id === s.char);
     return `<div class="seat ${s.type === 'off' ? 'off' : ''}" data-k="${k}">
-      <div class="av" style="border-color:${COLORS[k]}">${s.type === 'off' ? '·' : ch.e}</div>
+      <div class="av" style="border-color:${COLORS[k]}">${s.type === 'off' ? '·' : charImg(ch.id)}</div>
       <select data-f="type">
         <option value="human" ${s.type === 'human' ? 'selected' : ''}>👤 Pessoa</option>
         <option value="bot" ${s.type === 'bot' ? 'selected' : ''}>🤖 Bot</option>
         ${k >= 2 ? `<option value="off" ${s.type === 'off' ? 'selected' : ''}>— Vazio</option>` : ''}
       </select>
       <input class="hideoff" data-f="name" maxlength="14" value="${esc(s.name)}" aria-label="Nome">
-      <select class="full hideoff" data-f="char">${CHARS.map((c) => `<option value="${c.id}" ${c.id === s.char ? 'selected' : ''}>${c.e} ${c.n}</option>`).join('')}</select>
+      <select class="full hideoff" data-f="char">${CHARS.map((c) => `<option value="${c.id}" ${c.id === s.char ? 'selected' : ''}>${c.n}</option>`).join('')}</select>
       <p class="desc hideoff">${ch.d}</p></div>`;
   }).join('');
 }
@@ -779,7 +782,7 @@ $('#seats').addEventListener('change', (e) => {
   const el = e.target;
   const k = +el.closest('.seat').dataset.k;
   const f = el.dataset.f;
-  if (f === 'type' && el.value === 'bot' && seats[k].type === 'human' && seats[k].name === 'Você') seats[k].name = 'Bot ' + CHARS.find((c) => c.id === seats[k].char).n.split(',')[0];
+  if (f === 'type' && el.value === 'bot' && seats[k].type === 'human' && seats[k].name === 'Você') seats[k].name = 'Bot ' + CHARS.find((c) => c.id === seats[k].char).n.split('-')[0];
   if (f === 'type' && el.value === 'human' && seats[k].name.startsWith('Bot ')) seats[k].name = 'Jogador ' + (k + 1);
   seats[k][f] = el.value;
   renderSeats();
@@ -808,7 +811,7 @@ function startGame(state) {
   $('#menu').classList.add('hidden');
   $('#game').classList.remove('hidden');
   try {
-    View.init({ canvas: $('#cv'), board: B, players: S.players, fast: () => TURBO, onTile });
+    View.init({ canvas: $('#cv'), board: B, players: S.players, fast: () => TURBO, onTile, img: (n) => `img/${n}.webp` });
   } catch (e) {
     ask('Ops', '<p>Este navegador não conseguiu abrir o tabuleiro 3D (WebGL desligado?).</p>', [{ label: 'OK', value: 1 }]);
     return;
