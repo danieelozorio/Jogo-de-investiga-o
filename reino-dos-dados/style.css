@@ -57,7 +57,7 @@ h2 { font-size: 1.2rem; margin: 1.2em 0 .5em; color: var(--gold); }
 .rules li { margin: 6px 0; font-size: .92rem; }
 
 /* ---------- jogo ---------- */
-#game { display: flex; flex-direction: column; align-items: center; height: 100dvh; padding: 8px 8px 12px; gap: 8px; }
+#game { position: fixed; inset: 0; overflow: hidden; background: #f6e7c1; }
 #topbar { width: min(100%, 720px); display: flex; gap: 6px; align-items: stretch; }
 #players { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
 .tools { display: flex; flex-direction: column; gap: 4px; }
@@ -167,12 +167,34 @@ h2 { font-size: 1.2rem; margin: 1.2em 0 .5em; color: var(--gold); }
 .seat .av { width: 56px; height: 56px; }
 .pcard .av { width: 38px; height: 38px; }
 
-/* celular em pé: botão e histórico sobem para o espaço livre embaixo do tabuleiro */
-@media (max-aspect-ratio: 4/5) {
-  #game { position: relative; }
-  #controls {
-    position: absolute; left: 0; right: 0; bottom: 28px; margin: 0 auto; width: min(calc(100% - 56px), 520px);
-    background: #1b1140cc; padding: 10px 12px; border-radius: 18px; backdrop-filter: blur(4px);
-  }
-  #controls:has(#btnRoll.hidden) #log li:nth-child(2) { display: list-item; }
+
+/* ---------- tela de jogo em tela cheia ---------- */
+#bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#game #stage {
+  position: absolute; inset: 0; width: auto; min-height: 0; border-radius: 0;
+  background: none; box-shadow: none; overflow: hidden;
+}
+#game #topbar {
+  position: absolute; z-index: 10; top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  width: auto; max-width: 760px; margin: 0 auto;
+}
+#game .pcard { background: #2a1b5ce6; box-shadow: 0 4px 14px #3b250a40; }
+#game .tools .icon { background: #2a1b5ce6; }
+#game #controls {
+  position: absolute; z-index: 10; left: 0; right: 0; margin: 0 auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  width: min(calc(100% - 32px), 460px); min-height: 176px; align-content: end;
+  background: #2a1b5ceb; padding: 10px 14px 8px; border-radius: 20px;
+  box-shadow: 0 8px 24px #3b250a55, inset 0 0 0 2px #ffffff22;
+}
+@media (min-aspect-ratio: 5/4) and (min-width: 900px) {
+  #game #controls { left: auto; right: max(16px, env(safe-area-inset-right, 0px)); width: 340px; }
+}
+.ctop { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ctop #diceSum { position: static; animation: popr .25s; font-size: 1.1rem; padding: 2px 12px; }
+#game #pickMsg { bottom: auto; top: 50%; }
+#game #controls { grid-template-columns: minmax(0, 1fr); }
+@media (min-aspect-ratio: 5/4) and (min-width: 900px) {
+  #game #controls { min-height: 0; }
 }

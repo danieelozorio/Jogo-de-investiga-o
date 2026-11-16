@@ -62,50 +62,27 @@ const View = (() => {
 
   /* ---------- cena base ---------- */
   function buildWorld() {
-    // ilha flutuante: terra + grama
-    const dirt = mesh(new T.CylinderGeometry(6.4, 5.2, 1.6, 8, 1), mat(0x8b5a3c), false);
-    dirt.rotation.y = Math.PI / 8;
-    dirt.position.y = -1.0;
-    scene.add(dirt);
-    const rock = mesh(new T.ConeGeometry(5.0, 3.2, 8), mat(0x6d4630), false);
-    rock.rotation.set(Math.PI, Math.PI / 8, 0);
-    rock.position.y = -3.4;
-    scene.add(rock);
-    const grass = mesh(new T.CylinderGeometry(6.5, 6.4, 0.35, 8, 1), mat(0x69c94b), false);
-    grass.rotation.y = Math.PI / 8;
-    grass.position.y = -0.18;
-    grass.receiveShadow = true;
-    scene.add(grass);
-
-    // moldura de madeira + mapa ilustrado no centro
-    const frame = mesh(new T.BoxGeometry(8.7, 0.24, 8.7), mat(0xb7793f), false);
-    frame.position.y = -0.01;
+    // tabuleiro de madeira grosso, apoiado no chão (o chão é o fundo desenhado atrás do 3D)
+    const frame = mesh(new T.BoxGeometry(8.7, 0.5, 8.7), mat(0xb7793f), true);
+    frame.position.y = -0.14;
     scene.add(frame);
     const rim = mesh(new T.BoxGeometry(8.36, 0.1, 8.36), mat(0x7a4a22), false);
     rim.position.y = 0.07;
     scene.add(rim);
+    // sombra suave do tabuleiro no chão
+    const shTex = canvasTex(256, 256, (x) => {
+      const g = x.createRadialGradient(128, 128, 60, 128, 128, 128);
+      g.addColorStop(0, 'rgba(60,40,10,.42)'); g.addColorStop(1, 'rgba(60,40,10,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    });
+    const shadow = new T.Mesh(new T.PlaneGeometry(13, 13), new T.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.rotation.z = Math.PI / 4;
+    shadow.position.set(0.5, -0.4, 0.5);
+    shadow.scale.set(0.95, 0.95, 1);
+    scene.add(shadow);
     buildCenter();
-
-    // mata em volta do tabuleiro
-    for (let k = 0; k < 22; k++) {
-      const a2 = (k / 22) * Math.PI * 2 + 0.2;
-      const r = 5.6 + (k % 3) * 0.28;
-      const tree = makeTree([0x2f9e44, 0x37b24d, 0x2b8a3e][k % 3], 0.9 + (k % 4) * 0.15);
-      tree.position.set(Math.cos(a2) * r, -0.02, Math.sin(a2) * r);
-      scene.add(tree);
-    }
-
-    // nuvens ao redor
-    for (let k = 0; k < 5; k++) {
-      const c = makeCloud();
-      const a = (k / 5) * Math.PI * 2 + 0.4;
-      c.position.set(Math.cos(a) * 7.2, -1.2 - (k % 2) * 0.8, Math.sin(a) * 7.2);
-      scene.add(c);
-      const y0 = c.position.y;
-      spinners.push((t) => { c.position.y = y0 + Math.sin(t * 0.6 + k) * 0.12; });
-    }
   }
-
 
   /* ---------- centro: praça limpa com logo e pista dos dados ---------- */
   function canvasTex(w, h, draw) {
@@ -179,74 +156,7 @@ const View = (() => {
     scene.add(sign);
     spinners.push((t) => { sign.position.y = 1.2 + Math.sin(t * 1.4) * 0.05; });
 
-    // enfeites de cada bioma, encostados no anel
-    const deco = (x0, z0, obj) => { obj.position.set(x0, 0.19, z0); scene.add(obj); };
-    // Amazônia (baixo): mata e vitórias-régias
-    [[-1.6, 2.35], [-0.9, 2.5], [1.4, 2.45], [2.1, 2.2]].forEach(([x0, z0], k) => deco(x0, z0, makeTree(k % 2 ? 0x2f9e44 : 0x37b24d, 0.75)));
-    [[0.2, 2.45], [0.55, 2.2]].forEach(([x0, z0]) => { const l = mesh(new T.CylinderGeometry(0.18, 0.18, 0.02, 16), mat(0x4ade80), false); deco(x0, z0, l); });
-    // Pantanal (esquerda): ipês amarelos
-    [[-2.45, 0.3], [-2.3, 1.5]].forEach(([x0, z0]) => deco(x0, z0, makeIpe()));
-    // Sertão (cima): mandacarus e pedras
-    [[0.5, -2.4], [1.3, -2.3], [2.2, -2.35]].forEach(([x0, z0], k) => deco(x0, z0, makeCactus(0.7 + k * 0.1)));
-    [[0.9, -2.15], [1.75, -2.5]].forEach(([x0, z0]) => { const r = mesh(new T.DodecahedronGeometry(0.14, 0), mat(0xd9864a)); r.scale.y = 0.7; deco(x0, z0, r); });
-    // Litoral (direita): coqueiros
-    [[2.45, -0.9], [2.35, 0.5], [2.45, 1.4]].forEach(([x0, z0]) => deco(x0, z0, makePalm()));
   }
-  function makeIpe() {
-    const g = new T.Group();
-    const trunk = mesh(new T.CylinderGeometry(0.04, 0.06, 0.4, 6), mat(0x7a4a22)); trunk.position.y = 0.2; g.add(trunk);
-    [[0, 0.5, 0, 0.24], [0.14, 0.42, 0.05, 0.16], [-0.12, 0.44, -0.04, 0.17]].forEach(([x0, y0, z0, r]) => {
-      const b = mesh(new T.IcosahedronGeometry(r, 0), mat(0xfacc15)); b.position.set(x0, y0, z0); g.add(b);
-    });
-    return g;
-  }
-  function makeCactus(s = 1) {
-    const g = new T.Group();
-    const m = mat(0x4d9a3a);
-    const body = mesh(new T.CylinderGeometry(0.07, 0.08, 0.6, 8), m); body.position.y = 0.3; g.add(body);
-    [[-1, 0.28], [1, 0.36]].forEach(([d, y0]) => {
-      const arm = mesh(new T.CylinderGeometry(0.045, 0.045, 0.14, 8), m); arm.rotation.z = Math.PI / 2; arm.position.set(d * 0.12, y0, 0); g.add(arm);
-      const up = mesh(new T.CylinderGeometry(0.045, 0.045, 0.2, 8), m); up.position.set(d * 0.19, y0 + 0.1, 0); g.add(up);
-    });
-    g.scale.setScalar(s);
-    return g;
-  }
-  function makePalm() {
-    const g = new T.Group();
-    const trunk = mesh(new T.CylinderGeometry(0.03, 0.05, 0.6, 6), mat(0x9a6b3c)); trunk.position.set(0.05, 0.3, 0); trunk.rotation.z = -0.2; g.add(trunk);
-    for (let k = 0; k < 6; k++) {
-      const piv = new T.Group(); piv.position.set(0.11, 0.6, 0); piv.rotation.y = (k / 6) * Math.PI * 2;
-      const leaf = mesh(new T.ConeGeometry(0.05, 0.36, 4), mat(0x22a35a)); leaf.position.x = 0.16; leaf.rotation.z = -Math.PI / 2.3; piv.add(leaf); g.add(piv);
-    }
-    const coco = mesh(new T.SphereGeometry(0.04, 6, 4), mat(0x6b4423)); coco.position.set(0.1, 0.56, 0.04); g.add(coco);
-    return g;
-  }
-
-  function makeTree(color, s = 1) {
-    const g = new T.Group();
-    const trunk = mesh(new T.CylinderGeometry(0.06, 0.08, 0.3, 6), mat(0x8a5a35));
-    trunk.position.y = 0.15;
-    g.add(trunk);
-    const c1 = mesh(new T.ConeGeometry(0.32, 0.5, 7), mat(color));
-    c1.position.y = 0.48;
-    g.add(c1);
-    const c2 = mesh(new T.ConeGeometry(0.24, 0.4, 7), mat(color));
-    c2.position.y = 0.72;
-    g.add(c2);
-    g.scale.setScalar(s);
-    return g;
-  }
-  function makeCloud() {
-    const g = new T.Group();
-    const m = mat(0xffffff, { transparent: true, opacity: 0.92 });
-    [[0, 0, 0, 0.6], [0.6, 0.05, 0.1, 0.45], [-0.55, -0.05, 0, 0.42], [0.2, 0.3, 0, 0.4]].forEach(([x, y, z, r]) => {
-      const s = new T.Mesh(new T.SphereGeometry(r, 10, 8), m);
-      s.position.set(x, y, z);
-      g.add(s);
-    });
-    return g;
-  }
-
   /* ---------- casas do tabuleiro ---------- */
   function buildTiles(B) {
     B.forEach((b, i) => {
@@ -784,6 +694,8 @@ const View = (() => {
 
   function setPick(filter) { pickFilter = filter; }
 
+  let insets = { top: 0, bottom: 0 };
+  function setInsets(v) { insets = v; fit(); }
   function fit() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -791,22 +703,21 @@ const View = (() => {
     renderer.setSize(w, h, false);
     camera.updateMatrixWorld();
     const pts = [];
-    [-4.3, 4.3].forEach((x) => [-4.3, 4.3].forEach((z) => { pts.push(new T.Vector3(x, 1.4, z), new T.Vector3(x, -0.2, z)); }));
-    [[0, -4.8], [4.8, 0], [0, 4.8], [-4.8, 0]].forEach(([x, z]) => pts.push(new T.Vector3(x * 0.95, -1.4, z * 0.95)));
+    [-4.35, 4.35].forEach((x) => [-4.35, 4.35].forEach((z) => { pts.push(new T.Vector3(x, 1.3, z), new T.Vector3(x, -0.4, z)); }));
     let minx = Infinity; let maxx = -Infinity; let miny = Infinity; let maxy = -Infinity;
     pts.forEach((p) => {
       const v = p.applyMatrix4(camera.matrixWorldInverse);
       minx = Math.min(minx, v.x); maxx = Math.max(maxx, v.x); miny = Math.min(miny, v.y); maxy = Math.max(maxy, v.y);
     });
-    let cw = maxx - minx;
-    let chh = maxy - miny;
+    const top = Math.min(insets.top, h * 0.3);
+    const bot = Math.min(insets.bottom, h * 0.35);
+    const ah = Math.max(80, h - top - bot);
+    const aw = Math.max(80, w - 16);
+    const s2 = Math.max((maxx - minx) / aw, (maxy - miny) / ah) * 1.03; // unidades por pixel
     const cx = (minx + maxx) / 2;
     const cy = (miny + maxy) / 2;
-    const aspect = w / h;
-    if (cw / chh > aspect) chh = cw / aspect; else cw = chh * aspect;
-    cw *= 1.02; chh *= 1.02;
-    camera.left = cx - cw / 2; camera.right = cx + cw / 2;
-    camera.top = cy + chh / 2; camera.bottom = cy - chh / 2;
+    camera.left = cx - (w / 2) * s2; camera.right = cx + (w / 2) * s2;
+    camera.top = cy + (top + ah / 2) * s2; camera.bottom = camera.top - h * s2;
     camera.updateProjectionMatrix();
   }
 
@@ -893,5 +804,5 @@ const View = (() => {
     requestAnimationFrame(loop);
   }
 
-  return { init, sync, placeAll, setCurrent, hop, teleport, roll, coins, sparkle, setPick, tilePos, tokenPos: (idx) => tokens[idx] && tokens[idx].group.position.clone() };
+  return { init, setInsets, fit, sync, placeAll, setCurrent, hop, teleport, roll, coins, sparkle, setPick, tilePos, tokenPos: (idx) => tokens[idx] && tokens[idx].group.position.clone() };
 })();

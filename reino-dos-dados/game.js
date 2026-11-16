@@ -821,6 +821,18 @@ function startGame(state) {
     ask('Ops', '<p>Este navegador não conseguiu abrir o tabuleiro 3D (WebGL desligado?).</p>', [{ label: 'OK', value: 1 }]);
     return;
   }
+  const relayout = () => {
+    drawBackground($('#bg'));
+    const h = window.innerHeight;
+    const w = window.innerWidth;
+    const tb = $('#topbar').getBoundingClientRect();
+    const cr = $('#controls').getBoundingClientRect();
+    const spansMiddle = cr.left < w * 0.5 && cr.right > w * 0.5;
+    View.setInsets({ top: tb.bottom + 6, bottom: spansMiddle ? h - cr.top + 6 : 0 });
+  };
+  relayout();
+  window.addEventListener('resize', relayout);
+  loadBackgroundImage('img/fundo.webp', () => drawBackground($('#bg')));
   render();
   gameLoop();
 }
