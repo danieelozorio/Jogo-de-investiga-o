@@ -292,3 +292,6 @@ select, input { background: #1e1812; border: 1px solid #6b5532; }
 #diceSum, .ctop #diceSum { background: var(--ivory); color: #1c140a; box-shadow: 0 2px 0 #8a7550; font-family: var(--display); }
 #diceSum.dbl { background: linear-gradient(180deg, #ecd28e, #c49a4a); }
 #toast { background: var(--ivory); color: #1c140a; border: 1px solid #c49a4a; font-family: var(--display); }
+/* miniaturas: zoom no rosto dentro dos círculos */
+.av .chimg:not(.big) { transform: scale(1.7); transform-origin: 50% 6%; }
+.seat .av, .pcard .av { background: radial-gradient(circle at 50% 30%, #f4ead3, #cdbb94) !important; }

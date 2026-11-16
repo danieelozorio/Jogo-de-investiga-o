@@ -444,7 +444,7 @@ const View = (() => {
       tex.encoding = T.sRGBEncoding;
       m.map = tex;
       m.needsUpdate = true;
-      const h = 1.05;
+      const h = 1.2;
       sp.scale.set(h * tex.image.width / tex.image.height, h, 1);
     });
     g.add(sp);
