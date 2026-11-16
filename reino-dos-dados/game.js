@@ -167,77 +167,32 @@ async function toast(msg, ms = 1100) {
   t.classList.add('hidden');
 }
 
-function coord(i) { // [linha, coluna] no grid 8x8, sentido anti-horário a partir do canto inferior direito
-  if (i === 0) return [8, 8];
-  if (i < 7) return [8, 8 - i];
-  if (i === 7) return [8, 1];
-  if (i < 14) return [8 - (i - 7), 1];
-  if (i === 14) return [1, 1];
-  if (i < 21) return [1, 1 + (i - 14)];
-  if (i === 21) return [1, 8];
-  return [1 + (i - 21), 8];
+function mixHex(a, b, t) {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ch = (sh) => Math.round(((pa >> sh) & 255) * (1 - t) + ((pb >> sh) & 255) * t);
+  return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
 }
 
-function buildBoard() {
-  const board = $('#board');
-  board.querySelectorAll('.tile,.token').forEach((el) => el.remove());
-  B.forEach((b, i) => {
-    const el = document.createElement('div');
-    const [r, c] = coord(i);
-    el.className = 'tile';
-    el.dataset.i = i;
-    el.style.gridArea = `${r} / ${c}`;
-    board.appendChild(el);
-  });
-  S.players.forEach((p) => {
-    const tk = document.createElement('div');
-    tk.className = 'token';
-    tk.id = 'tk' + p.idx;
-    tk.style.borderColor = p.color;
-    tk.textContent = charOf(p).e;
-    board.appendChild(tk);
-  });
-}
-
-function renderTiles() {
-  document.querySelectorAll('.tile').forEach((el) => {
-    const i = +el.dataset.i;
-    const b = B[i];
-    const T = S.tiles[i];
-    const corner = i % 7 === 0;
-    let cls = 'tile' + (corner ? ' corner' : '') + (!isBuyable(i) && !corner ? ' special' : '');
-    let band = '';
-    let lb = b.s || '';
-    let lv = '';
-    el.style.removeProperty('--oc');
-    if (b.t === 'prop') band = `<div class="band" style="background:${GROUPS[b.g].c}"></div>`;
-    if (b.t === 'attr') band = '<div class="band" style="background:linear-gradient(90deg,#f472b6,#a78bfa,#60a5fa)"></div>';
-    if (isBuyable(i)) {
-      if (T.owner >= 0) {
-        cls += ' owned' + (T.lvl === 4 ? ' landmark' : '');
-        el.style.setProperty('--oc', S.players[T.owner].color);
-        lb = fmt(toll(i, null));
-        if (b.t === 'prop') lv = LVL_ICON[T.lvl];
-      } else lb = fmt(price(i));
-    }
-    if (picker && picker.filter(i)) cls += ' pick';
-    el.className = cls;
-    el.innerHTML = `${band}${S.festival === i ? '<span class="fx">🎉</span>' : ''}${lv ? `<span class="lv">${lv}</span>` : ''}<span class="em">${b.e}</span><span class="lb">${lb}</span>`;
-  });
-}
-
-function placeTokens(slowIdx = -1) {
-  S.players.forEach((p) => {
-    const tk = document.getElementById('tk' + p.idx);
-    if (!tk) return;
-    if (p.out) { tk.classList.add('hidden'); return; }
-    const [r, c] = coord(p.pos);
-    const off = [[0.4, 0.4], [6.6, 0.4], [0.4, 6.6], [6.6, 6.6]][p.idx];
-    tk.style.left = (c - 1) * 12.5 + off[0] + '%';
-    tk.style.top = (r - 1) * 12.5 + off[1] + '%';
-    tk.classList.toggle('cur', p.idx === S.turn);
-    tk.classList.toggle('slow', p.idx === slowIdx);
-  });
+/* o que aparece pintado em cada casa do tabuleiro 3D */
+function tileView(i) {
+  const b = B[i];
+  const T = S.tiles[i];
+  const corner = i % 7 === 0;
+  const d = { bg: corner ? '#ffe08a' : isBuyable(i) ? '#fff6e6' : '#efe4ff', text: b.s || '', big: corner };
+  if (b.t === 'prop') { d.band = GROUPS[b.g].c; d.emoji = b.e; }
+  if (b.t === 'attr') d.band = '#c084fc';
+  if (isBuyable(i)) {
+    if (T.owner >= 0) {
+      const o = S.players[T.owner];
+      d.owner = o.color;
+      d.bg = mixHex('#fff6e6', o.color, 0.28);
+      d.text = Math.round(toll(i, null)).toLocaleString('pt-BR');
+      d.dimEmoji = true;
+    } else d.text = String(price(i));
+  }
+  if (S.festival === i) d.badge = '🎉';
+  return d;
 }
 
 const lastMoney = {};
@@ -265,21 +220,13 @@ function renderPlayers() {
 
 function render() {
   renderPlayers();
-  renderTiles();
-  placeTokens();
+  View.sync(S, B, tileView);
+  View.placeAll(S);
+  View.setCurrent(S.turn);
   renderLog();
   const p = S.players[S.turn];
   $('#roundLbl').textContent = `Rodada ${Math.min(S.round, S.maxRounds)} de ${S.maxRounds}`;
-  $('#turnLbl').innerHTML = `<span style="color:${p.color}">●</span> Vez de ${esc(p.name)}`;
-}
-
-const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-function showDice(a, b) {
-  const dice = document.querySelectorAll('.die');
-  [a, b].forEach((n, k) => {
-    dice[k].innerHTML = Array.from({ length: 9 }, (_, j) => `<i class="${PIPS[n].includes(j) ? 'on' : ''}"></i>`).join('');
-    dice[k].classList.toggle('dbl', a === b);
-  });
+  $('#turnLbl').innerHTML = `<span class="dot" style="background:${p.color}"></span>Vez de ${esc(p.name)}`;
 }
 
 /* ---------- modal e escolha de casa ---------- */
@@ -304,20 +251,20 @@ let picker = null;
 function pickTile(msg, filter, skipLabel) {
   return new Promise((res) => {
     picker = { filter, res };
-    $('#board').classList.add('picking');
     const pm = $('#pickMsg');
     pm.innerHTML = esc(msg) + (skipLabel ? '<br><button id="btnSkipPick" class="ghost">' + esc(skipLabel) + '</button>' : '');
     pm.classList.remove('hidden');
     if (skipLabel) $('#btnSkipPick').onclick = () => finishPick(-1);
-    renderTiles();
+    View.setPick(filter);
+    render();
   });
 }
 function finishPick(i) {
   const r = picker.res;
   picker = null;
-  $('#board').classList.remove('picking');
   $('#pickMsg').classList.add('hidden');
-  renderTiles();
+  View.setPick(null);
+  render();
   r(i);
 }
 
@@ -407,8 +354,12 @@ async function getRoll(p) {
   let zone;
   if (p.bot) { await sleep(450); zone = rnd(3); } else zone = await waitHumanRoll();
   const [a, b] = rollDice(zone);
-  for (let k = 0; k < 7; k++) { showDice(1 + rnd(6), 1 + rnd(6)); sfx.dice(); await sleep(55); }
-  showDice(a, b);
+  $('#diceSum').classList.add('hidden');
+  await View.roll(a, b, sfx.dice);
+  const ds = $('#diceSum');
+  ds.textContent = a === b ? `${a + b} · dupla!` : String(a + b);
+  ds.classList.toggle('dbl', a === b);
+  ds.classList.remove('hidden');
   log(`${esc(p.name)} tirou ${a} + ${b} = ${a + b}${a === b ? ' (dupla!)' : ''}`);
   await sleep(300);
   return [a, b];
@@ -421,6 +372,7 @@ function passStart(p) {
   p.laps++;
   log(`🏁 ${esc(p.name)} passou pela Largada: +${fmt(v)}`);
   sfx.coin();
+  View.coins(0, View.tokenPos(p.idx), 6);
   renderPlayers();
 }
 
@@ -429,29 +381,25 @@ async function moveSteps(p, n) {
   for (let k = 0; k < Math.abs(n); k++) {
     p.pos = (p.pos + dir + N) % N;
     if (dir > 0 && p.pos === 0) passStart(p);
-    placeTokens();
     sfx.step();
-    await sleep(170);
+    await View.hop(p.idx, p.pos, dir < 0 ? 0.26 : 0.19);
   }
 }
 
 async function teleport(p, dest) {
   if (dest < p.pos) passStart(p);
   p.pos = dest;
-  placeTokens(p.idx);
   sfx.magic();
-  await sleep(700);
-  placeTokens();
+  await View.teleport(p.idx, dest);
 }
 
 async function goIsland(p) {
   p.pos = ISLAND;
   p.island = p.char === 'coruja' ? 1 : 2;
   p.doubles = 0;
-  placeTokens(p.idx);
   sfx.bad();
   log(`🏝️ ${esc(p.name)} foi parar na Ilha Perdida`);
-  await sleep(700);
+  await View.teleport(p.idx, ISLAND);
   renderPlayers();
 }
 
@@ -474,7 +422,7 @@ async function pay(p, amt, to) {
       p.money += v;
       log(`💸 ${esc(p.name)} vendeu ${B[i].n} por ${fmt(v)}`);
     }
-    renderTiles();
+    render();
   }
   const paid = Math.min(amt, p.money);
   p.money -= paid;
@@ -580,6 +528,7 @@ async function offerTakeover(p, i) {
   if (!ok) return false;
   p.money -= c; owner.money += c; T.owner = p.idx;
   sfx.magic();
+  View.coins(i, View.tokenPos(owner.idx), 12);
   log(`🏴 ${esc(p.name)} tomou ${B[i].n} de ${esc(owner.name)} por ${fmt(c)}`);
   render();
   await toast(`🏴 ${esc(p.name)} tomou ${B[i].n}!`);
@@ -623,6 +572,7 @@ async function drawCard(p) {
   const pool = p.char === 'coruja' ? CARDS.filter((c) => c.good) : CARDS;
   const c = pool[rnd(pool.length)];
   sfx.magic();
+  View.sparkle(p.pos, 0xc4b5fd, 18);
   log(`🔮 ${esc(p.name)}: ${c.t}`);
   const html = `<div class="card-magic"><span class="big-em">${c.e}</span>${c.t}</div>`;
   if (p.bot) await toast(html, 1500);
@@ -650,6 +600,7 @@ async function land(p) {
         const v = toll(i, p);
         log(`💸 ${esc(p.name)} pagou ${fmt(v)} de pedágio a ${esc(owner.name)}`);
         sfx.bad();
+        View.coins(i, View.tokenPos(owner.idx), 10);
         await toast(`💸 Pedágio: ${fmt(v)} para ${esc(owner.name)}`);
         await pay(p, v, owner);
       }
@@ -837,13 +788,31 @@ $('#seats').addEventListener('input', (e) => {
   if (e.target.dataset.f === 'name') seats[+e.target.closest('.seat').dataset.k].name = e.target.value;
 });
 
+function onTile(i) {
+  if (picker) { if (picker.filter(i)) finishPick(i); return; }
+  if (!$('#modal').classList.contains('hidden')) return;
+  const cur = S.players[S.turn];
+  const card = $('#modalCard');
+  card.innerHTML = `<h2>${B[i].e} ${B[i].n}</h2>${tileInfo(i, cur.bot ? null : cur)}<div class="btns"><button>Fechar</button></div>`;
+  card.querySelector('button').onclick = () => $('#modal').classList.add('hidden');
+  $('#modal').classList.remove('hidden');
+}
+
 function startGame(state) {
+  if (typeof THREE === 'undefined') {
+    ask('Ops', '<p>O motor 3D não carregou. Confira a internet e recarregue a página.</p>', [{ label: 'OK', value: 1 }]);
+    return;
+  }
   S = state;
   SPEED = S.speed || 1;
   $('#menu').classList.add('hidden');
   $('#game').classList.remove('hidden');
-  buildBoard();
-  showDice(1 + rnd(6), 1 + rnd(6));
+  try {
+    View.init({ canvas: $('#cv'), board: B, players: S.players, fast: () => TURBO, onTile });
+  } catch (e) {
+    ask('Ops', '<p>Este navegador não conseguiu abrir o tabuleiro 3D (WebGL desligado?).</p>', [{ label: 'OK', value: 1 }]);
+    return;
+  }
   render();
   gameLoop();
 }
@@ -869,20 +838,6 @@ $('#btnQuit').onclick = async () => {
     [{ label: 'Sair', value: 1 }, { label: 'Voltar ao jogo', value: 0, cls: 'ghost' }]);
   if (v) location.reload();
 };
-
-$('#board').addEventListener('click', (e) => {
-  const el = e.target.closest('.tile');
-  if (!el) return;
-  const i = +el.dataset.i;
-  if (picker) { if (picker.filter(i)) finishPick(i); return; }
-  if (!$('#modal').classList.contains('hidden')) return;
-  const cur = S.players[S.turn];
-  // só mostra informação; não interrompe o jogo
-  const card = $('#modalCard');
-  card.innerHTML = `<h2>${B[i].e} ${B[i].n}</h2>${tileInfo(i, cur.bot ? null : cur)}<div class="btns"><button>Fechar</button></div>`;
-  card.querySelector('button').onclick = () => $('#modal').classList.add('hidden');
-  $('#modal').classList.remove('hidden');
-});
 
 renderSeats();
 if (loadSave()) $('#continueBox').classList.remove('hidden');

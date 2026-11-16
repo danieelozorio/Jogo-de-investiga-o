@@ -1,6 +1,6 @@
 # 🎲 Reino dos Dados
 
-Jogo de tabuleiro mágico pra celular, no estilo "banco imobiliário digital": role os dados, compre terras, construa até um **Marco Encantado** e faça os rivais pagarem pedágio.
+Jogo de tabuleiro mágico **em 3D** pra celular e navegador, no estilo "banco imobiliário digital": role os dados, compre terras, construa até um **Marco Encantado** e faça os rivais pagarem pedágio.
 
 - De 2 a 4 jogadores: contra **bots** ou passando o celular entre pessoas (dá pra misturar).
 - 6 personagens originais, cada um com um poder.
@@ -9,7 +9,7 @@ Jogo de tabuleiro mágico pra celular, no estilo "banco imobiliário digital": r
 - **Vitória:** levar todos à falência, fazer um Monopólio (3 reinos, um lado inteiro ou as 4 atrações) ou ter o maior patrimônio no fim das rodadas.
 - A partida é salva no aparelho e pode ser continuada depois.
 
-Não precisa de servidor nem banco: é só HTML, CSS e JS. No GitHub Pages fica em
+Não precisa de servidor nem banco: é só HTML, CSS e JS. O tabuleiro 3D usa o [Three.js](https://threejs.org) (r128, carregado do cdnjs) e fica todo em `view3d.js`; as regras ficam em `game.js`. No GitHub Pages fica em
 `https://<seu-usuario>.github.io/Jogo-de-investiga-o/reino-dos-dados/`.
 
 Teste rápido só com bots: abra `index.html?turbo`, coloque todos como Bot e clique em Começar.
