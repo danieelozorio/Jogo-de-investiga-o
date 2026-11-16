@@ -176,20 +176,25 @@ function mixHex(a, b, t) {
   return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
 }
 
+/* cor de cada casa: terras na cor da região, atrações em lilás, cantos em dourado */
+function tileColor(i) {
+  const b = B[i];
+  if (b.t === 'prop') return GROUPS[b.g].c;
+  if (i % 7 === 0) return '#fbbf24';
+  if (b.t === 'attr') return '#e879f9';
+  return '#a78bfa';
+}
+
 /* o que aparece pintado em cada casa do tabuleiro 3D */
 function tileView(i) {
   const b = B[i];
   const T = S.tiles[i];
   const corner = i % 7 === 0;
-  const biome = ['#e9f9d8', '#dff5f7', '#ffe9cf', '#e1ecff'][Math.min(3, Math.floor((i - 1) / 7))];
-  const d = { bg: corner ? '#ffd65c' : isBuyable(i) ? biome : '#f1e6ff', text: b.s || '', big: corner };
-  if (b.t === 'prop') { d.band = GROUPS[b.g].c; d.emoji = b.e; }
-  if (b.t === 'attr') d.band = '#c084fc';
+  const d = { bg: tileColor(i), text: b.s || '', big: corner };
+  if (b.t === 'prop') d.emoji = b.e;
   if (isBuyable(i)) {
     if (T.owner >= 0) {
-      const o = S.players[T.owner];
-      d.owner = o.color;
-      d.bg = mixHex(biome, o.color, 0.3);
+      d.owner = S.players[T.owner].color;
       d.text = Math.round(toll(i, null)).toLocaleString('pt-BR');
       d.dimEmoji = true;
     } else d.text = String(price(i));
@@ -811,7 +816,7 @@ function startGame(state) {
   $('#menu').classList.add('hidden');
   $('#game').classList.remove('hidden');
   try {
-    View.init({ canvas: $('#cv'), board: B, players: S.players, fast: () => TURBO, onTile, img: (n) => `img/${n}.webp` });
+    View.init({ canvas: $('#cv'), board: B, players: S.players, fast: () => TURBO, onTile, tileColor, img: (n) => `img/${n}.webp` });
   } catch (e) {
     ask('Ops', '<p>Este navegador não conseguiu abrir o tabuleiro 3D (WebGL desligado?).</p>', [{ label: 'OK', value: 1 }]);
     return;

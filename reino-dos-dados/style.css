@@ -166,3 +166,13 @@ h2 { font-size: 1.2rem; margin: 1.2em 0 .5em; color: var(--gold); }
 .seat { grid-template-columns: 56px 1fr 1fr; }
 .seat .av { width: 56px; height: 56px; }
 .pcard .av { width: 38px; height: 38px; }
+
+/* celular em pé: botão e histórico sobem para o espaço livre embaixo do tabuleiro */
+@media (max-aspect-ratio: 4/5) {
+  #game { position: relative; }
+  #controls {
+    position: absolute; left: 0; right: 0; bottom: 28px; margin: 0 auto; width: min(calc(100% - 56px), 520px);
+    background: #1b1140cc; padding: 10px 12px; border-radius: 18px; backdrop-filter: blur(4px);
+  }
+  #controls:has(#btnRoll.hidden) #log li:nth-child(2) { display: list-item; }
+}
