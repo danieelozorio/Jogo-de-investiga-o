@@ -18,17 +18,17 @@ const ATTR_TOLL = 50;
 const TOLL_MULT = [0.3, 1, 2, 3.5, 5.5]; // por nível, multiplicado pelo preço do terreno
 const LVL_NAME = ['Terreno', 'Casa de Taipa', 'Vila Colonial', 'Casarão', 'Igreja Encantada'];
 const LVL_ICON = ['🚩', '🏠', '🏘️', '🏛️', '⛪'];
-const COLORS = ['#b3261e', '#1f5fa8', '#1f7a45', '#c08a1e'];
+const COLORS = ['#e23b3b', '#2f7ff0', '#22b35e', '#f0a31e'];
 
 const GROUPS = [
-  { n: 'Amazônia · Beira-Rio', c: '#3f7d4e', p: 60 },
-  { n: 'Amazônia · Mata', c: '#24573a', p: 80 },
-  { n: 'Pantanal · Alagados', c: '#2f7c86', p: 100 },
-  { n: 'Pantanal · Fazendas', c: '#b8913a', p: 120 },
-  { n: 'Sertão · Vilas', c: '#b8652e', p: 150 },
-  { n: 'Sertão · Arraial', c: '#8f2f2a', p: 170 },
-  { n: 'Litoral · Praias', c: '#2f5c8f', p: 200 },
-  { n: 'Litoral · Baía', c: '#5a3f7a', p: 240 },
+  { n: 'Amazônia · Beira-Rio', c: '#7fd36b', p: 60 },
+  { n: 'Amazônia · Mata', c: '#45c4a8', p: 80 },
+  { n: 'Pantanal · Alagados', c: '#5ec8f2', p: 100 },
+  { n: 'Pantanal · Fazendas', c: '#f3c74f', p: 120 },
+  { n: 'Sertão · Vilas', c: '#f6a35b', p: 150 },
+  { n: 'Sertão · Arraial', c: '#ee6d6a', p: 170 },
+  { n: 'Litoral · Praias', c: '#6d8ff0', p: 200 },
+  { n: 'Litoral · Baía', c: '#b98cf2', p: 240 },
 ];
 
 const B = [
@@ -181,22 +181,19 @@ function mixHex(a, b, t) {
 function tileColor(i) {
   const b = B[i];
   if (b.t === 'prop') return GROUPS[b.g].c;
-  if (b.t === 'attr') return '#7a5a8c';
-  return '#5b4a3a';
+  if (b.t === 'attr') return '#f4a7d0';
+  return '#f6f1e6';
 }
 
 /* o que aparece pintado em cada casa do tabuleiro 3D */
 function tileView(i) {
   const b = B[i];
   const T = S.tiles[i];
-  const corner = i % 7 === 0;
-  const d = { bg: tileColor(i), text: b.s || '', big: corner };
-  if (!corner) { d.band = tileColor(i); d.emoji = b.e; }
+  const d = { bg: tileColor(i), name: b.n, kind: b.t, text: '' };
   if (isBuyable(i)) {
     if (T.owner >= 0) {
       d.owner = S.players[T.owner].color;
       d.text = Math.round(toll(i, null)).toLocaleString('pt-BR');
-      d.dimEmoji = true;
     } else d.text = String(price(i));
   }
   if (S.festival === i) d.badge = '🎉';
@@ -872,7 +869,6 @@ function startGame(state) {
   render();
   relayout();
   window.addEventListener('resize', relayout);
-  loadBackgroundImage('img/mesa.webp', () => drawBackground($('#bg')));
   render();
   gameLoop();
 }

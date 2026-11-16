@@ -15,6 +15,6 @@ Não precisa de servidor nem banco: é só HTML, CSS e JS. O tabuleiro 3D usa o 
 
 Teste rápido só com bots: abra `index.html?turbo`, coloque todos como Bot e clique em Começar.
 
-As ilustrações dos personagens ficam em `img/`. Se existir `img/mesa.webp`, ela vira o fundo do jogo; senão o fundo é uma mesa de madeira desenhada por código.
+As ilustrações dos personagens ficam em `img/`. O fundo do jogo (toalha azul-noite com estrelas e luas) é desenhado por código em `bg.js`; se existir `img/mesa.webp`, ela é usada no lugar.
 
 **Feito para o celular deitado.** Ao começar a partida o jogo tenta entrar em tela cheia na horizontal; se o celular estiver em pé, aparece um aviso para girar (dá para jogar em pé mesmo assim). Adicionando à tela inicial pelo GitHub Pages, ele já abre deitado e em tela cheia (`manifest.json`).

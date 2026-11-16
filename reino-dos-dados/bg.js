@@ -27,56 +27,48 @@ function drawBackground(cv) {
     return;
   }
 
-  let seed = 1234567;
+  let seed = 98765;
   const R = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-
-  // mesa de nogueira: tábuas na horizontal com veios
-  x.fillStyle = '#3a2214';
+  const g = x.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.hypot(W, H) * 0.62);
+  g.addColorStop(0, '#2a3a8c'); g.addColorStop(0.55, '#1c2766'); g.addColorStop(1, '#0d1238');
+  x.fillStyle = g;
   x.fillRect(0, 0, W, H);
-  const plank = Math.max(90, Math.round(Math.min(W, H) / 6));
-  for (let y0 = -plank / 2, row = 0; y0 < H; y0 += plank, row++) {
-    const shade = 0.85 + R() * 0.3;
-    const pg = x.createLinearGradient(0, y0, 0, y0 + plank);
-    pg.addColorStop(0, `rgba(${Math.round(92 * shade)},${Math.round(56 * shade)},${Math.round(32 * shade)},1)`);
-    pg.addColorStop(1, `rgba(${Math.round(70 * shade)},${Math.round(42 * shade)},${Math.round(24 * shade)},1)`);
-    x.fillStyle = pg;
-    x.fillRect(0, y0, W, plank);
-    // veios
-    for (let k = 0; k < 14; k++) {
-      const yy = y0 + R() * plank;
-      const amp = 2 + R() * 6;
-      const fr = 0.004 + R() * 0.01;
-      const ph = R() * 10;
-      x.beginPath();
-      for (let xx = 0; xx <= W; xx += 8) {
-        const py = yy + Math.sin(xx * fr + ph) * amp + Math.sin(xx * fr * 3.1 + ph) * amp * 0.3;
-        if (xx) x.lineTo(xx, py); else x.moveTo(xx, py);
-      }
-      x.strokeStyle = R() < 0.5 ? 'rgba(30,16,8,.28)' : 'rgba(150,100,60,.14)';
-      x.lineWidth = 1 + R() * 2;
-      x.stroke();
-    }
-    // nó da madeira de vez em quando
-    if (R() < 0.5) {
-      const kx = R() * W;
-      const ky = y0 + plank * (0.3 + R() * 0.4);
-      for (let r = 14; r > 2; r -= 3) {
-        x.strokeStyle = 'rgba(30,16,8,.25)';
-        x.lineWidth = 1.5;
-        x.beginPath(); x.ellipse(kx, ky, r * 2.4, r, 0, 0, Math.PI * 2); x.stroke();
-      }
-    }
-    // junta entre tábuas
-    x.fillStyle = 'rgba(15,8,4,.75)';
-    x.fillRect(0, y0 + plank - 2, W, 2);
-    x.fillStyle = 'rgba(180,130,80,.12)';
-    x.fillRect(0, y0 + plank, W, 1);
+  // trama do tecido
+  for (let k = 0; k < (W * H) / 260; k++) {
+    x.fillStyle = R() < 0.5 ? 'rgba(255,255,255,.03)' : 'rgba(0,0,20,.08)';
+    x.fillRect(R() * W, R() * H, 2, 2);
   }
-  // luz de luminária no centro e cantos escuros
-  const lamp = x.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.hypot(W, H) * 0.6);
-  lamp.addColorStop(0, 'rgba(255,214,150,.22)');
-  lamp.addColorStop(0.45, 'rgba(255,190,120,.06)');
-  lamp.addColorStop(1, 'rgba(0,0,0,.72)');
-  x.fillStyle = lamp;
+  const star = (cx, cy, r, rot) => {
+    x.save(); x.translate(cx, cy); x.rotate(rot);
+    x.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const rr = k % 2 ? r * 0.45 : r;
+      const a = (k / 10) * Math.PI * 2 - Math.PI / 2;
+      if (k) x.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); else x.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    x.closePath(); x.fill(); x.restore();
+  };
+  const moon = (cx, cy, r, rot) => {
+    x.save(); x.translate(cx, cy); x.rotate(rot);
+    x.beginPath(); x.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false); x.ellipse(0, 0, r * 0.45, r, 0, Math.PI / 2, -Math.PI / 2, true); x.closePath(); x.fill();
+    x.restore();
+  };
+  // estampa da toalha: estrelas e luas douradas espalhadas em grade irregular
+  const step = Math.max(90, Math.min(W, H) / 5.5);
+  for (let yy = step / 2; yy < H + step; yy += step) {
+    for (let xx = ((yy / step) % 2) * step / 2; xx < W + step; xx += step) {
+      const cx = xx + (R() - 0.5) * step * 0.5;
+      const cy = yy + (R() - 0.5) * step * 0.5;
+      const kind = R();
+      x.fillStyle = `rgba(240,205,120,${0.35 + R() * 0.3})`;
+      if (kind < 0.62) star(cx, cy, 8 + R() * 10, R() * 3);
+      else if (kind < 0.85) moon(cx, cy, 10 + R() * 8, R() * 6);
+      else { x.beginPath(); x.arc(cx, cy, 2 + R() * 2, 0, Math.PI * 2); x.fill(); }
+    }
+  }
+  // brilho de luz em cima e cantos mais escuros
+  const v = x.createRadialGradient(W / 2, H * 0.42, Math.min(W, H) * 0.2, W / 2, H * 0.45, Math.hypot(W, H) * 0.65);
+  v.addColorStop(0, 'rgba(120,140,255,.10)'); v.addColorStop(1, 'rgba(0,0,10,.6)');
+  x.fillStyle = v;
   x.fillRect(0, 0, W, H);
 }

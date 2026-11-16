@@ -366,3 +366,13 @@ select, input { background: #1e1812; border: 1px solid #6b5532; }
   #game #controls.side #btnRoll { padding: 8px 10px; width: 100%; }
   #game .tools { top: calc(env(safe-area-inset-top, 0px) + 96px); transform: none; }
 }
+
+/* ---------- tema noite estrelada (estilo da referência) ---------- */
+#game { background: #141a4a; }
+#game .pcard {
+  background: linear-gradient(180deg, #2c347ef2, #1a1f55f2); border: 2px solid #e2b85a;
+  box-shadow: 0 8px 22px #0008, inset 0 1px 0 #ffffff22;
+}
+#game .pcard .av { box-shadow: 0 0 0 2px #1a1f55, 0 0 0 4px #e2b85a; }
+#game .pcard.cur { box-shadow: 0 0 0 3px #ffe08a, 0 0 26px #ffd76a88, 0 8px 22px #0008; }
+#game #info, #game #controls #gauge, #game .tools .icon { background: #1f2660ee; border: 1px solid #e2b85a88; }

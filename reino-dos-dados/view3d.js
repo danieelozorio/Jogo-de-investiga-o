@@ -45,44 +45,63 @@ const View = (() => {
     });
   }
 
-  function coord(i) {
-    if (i === 0) return [8, 8];
-    if (i < 7) return [8, 8 - i];
-    if (i === 7) return [8, 1];
-    if (i < 14) return [8 - (i - 7), 1];
-    if (i === 14) return [1, 1];
-    if (i < 21) return [1, 1 + (i - 14)];
-    if (i === 21) return [1, 8];
-    return [1 + (i - 21), 8];
+  // casas compridas (para fora) em volta de uma praça 6x6, cantos em hexágono
+  const DEPTH = 1.7;
+  const HALF = 3;
+  const EDGE = HALF + DEPTH / 2;
+  function tileGeo(i) {
+    if (i % 7 === 0) {
+      const c = [[1, 1], [-1, 1], [-1, -1], [1, -1]][i / 7];
+      return { x: c[0] * EDGE, z: c[1] * EDGE, out: new T.Vector3(c[0], 0, c[1]).normalize(), side: -1, corner: true };
+    }
+    const side = Math.floor(i / 7);
+    const t = HALF - 0.5 - ((i % 7) - 1);
+    if (side === 0) return { x: t, z: EDGE, out: new T.Vector3(0, 0, 1), side };
+    if (side === 1) return { x: -EDGE, z: t, out: new T.Vector3(-1, 0, 0), side };
+    if (side === 2) return { x: -t, z: -EDGE, out: new T.Vector3(0, 0, -1), side };
+    return { x: EDGE, z: -t, out: new T.Vector3(1, 0, 0), side };
   }
   function tilePos(i) {
-    const [r, c] = coord(i);
-    return new T.Vector3((c - 4.5) * TILE, GROUND_Y, (r - 4.5) * TILE);
+    const g = tileGeo(i);
+    return new T.Vector3(g.x, GROUND_Y, g.z);
   }
 
   /* ---------- cena base ---------- */
   function buildWorld() {
-    // tabuleiro de madeira grosso, apoiado no chão (o chão é o fundo desenhado atrás do 3D)
-    const frame = mesh(new T.BoxGeometry(8.7, 0.5, 8.7), matStd(0x4a2a17, { roughness: 0.45, metalness: 0.05 }), true);
+    const W = 2 * (HALF + DEPTH) + 0.5;
+    const frame = mesh(new T.BoxGeometry(W, 0.5, W), matStd(0x241a4d, { roughness: 0.5 }), true);
     frame.position.y = -0.14;
     scene.add(frame);
-    const rim = mesh(new T.BoxGeometry(8.4, 0.1, 8.4), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 }), false);
-    rim.position.y = 0.07;
+    const rim = mesh(new T.BoxGeometry(W - 0.2, 0.08, W - 0.2), matStd(0xd9a93a, { metalness: 0.8, roughness: 0.3 }), false);
+    rim.position.y = 0.08;
     scene.add(rim);
-    // sombra suave do tabuleiro no chão
+    const top = mesh(new T.BoxGeometry(W - 0.4, 0.06, W - 0.4), matStd(0x33276b, { roughness: 0.55 }), false);
+    top.position.y = 0.1;
+    scene.add(top);
+    // sombra suave do tabuleiro na toalha
     const shTex = canvasTex(256, 256, (x) => {
-      const g = x.createRadialGradient(128, 128, 60, 128, 128, 128);
-      g.addColorStop(0, 'rgba(60,40,10,.42)'); g.addColorStop(1, 'rgba(60,40,10,0)');
+      const g = x.createRadialGradient(128, 128, 70, 128, 128, 128);
+      g.addColorStop(0, 'rgba(5,8,30,.55)'); g.addColorStop(1, 'rgba(5,8,30,0)');
       x.fillStyle = g; x.fillRect(0, 0, 256, 256);
     });
-    const shadow = new T.Mesh(new T.PlaneGeometry(13, 13), new T.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }));
+    const shadow = new T.Mesh(new T.PlaneGeometry(W * 1.45, W * 1.45), new T.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2;
-    shadow.rotation.z = Math.PI / 4;
-    shadow.position.set(0.5, -0.4, 0.5);
-    shadow.scale.set(0.95, 0.95, 1);
+    shadow.position.set(0.6, -0.4, 0.6);
     scene.add(shadow);
+    // pilhas de moedas na mesa, como no fim de uma rodada
+    [[-6.3, -1.4], [1.4, 6.3]].forEach(([x0, z0], n) => {
+      [[0, 0, 9], [0.42, 0.1, 6], [0.1, 0.42, 12], [-0.35, 0.3, 4], [0.5, -0.38, 7]].forEach(([dx, dz, hgt], k) => {
+        for (let c = 0; c < hgt; c++) {
+          const coin = new T.Mesh(new T.CylinderGeometry(0.2, 0.2, 0.055, 24), coinStackMat);
+          coin.position.set(x0 + dx + (Math.random() - 0.5) * 0.02, -0.36 + c * 0.058, z0 + dz + (Math.random() - 0.5) * 0.02);
+          coin.castShadow = true;
+          scene.add(coin);
+        }
+      });
+    });
     buildCenter();
   }
+  const coinStackMat = new T.MeshStandardMaterial({ color: 0xe9c25a, metalness: 0.75, roughness: 0.32 });
 
   /* ---------- centro: praça limpa com logo e pista dos dados ---------- */
   function canvasTex(w, h, draw) {
@@ -97,106 +116,82 @@ const View = (() => {
     return tex;
   }
   function buildCenter() {
-    // feltro verde com filete dourado duplo e brasão discreto
     const floor = canvasTex(1024, 1024, (x, w) => {
-      const g = x.createRadialGradient(512, 512, 60, 512, 512, 760);
-      g.addColorStop(0, '#2a5a45'); g.addColorStop(1, '#14301f');
+      const g = x.createRadialGradient(512, 512, 80, 512, 512, 760);
+      g.addColorStop(0, '#6b5fa8'); g.addColorStop(1, '#3f3577');
       x.fillStyle = g; x.fillRect(0, 0, w, w);
-      for (let k = 0; k < 26000; k++) { // trama do feltro
-        x.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.06)';
+      for (let k = 0; k < 18000; k++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,.04)' : 'rgba(20,10,60,.06)';
         x.fillRect(Math.random() * w, Math.random() * w, 2, 2);
       }
-      x.strokeStyle = '#c9a24a'; x.lineWidth = 6; x.strokeRect(34, 34, 956, 956);
-      x.lineWidth = 2; x.strokeRect(52, 52, 920, 920);
-      // cantoneiras
-      [[52, 52], [972, 52], [52, 972], [972, 972]].forEach(([cx, cy]) => {
-        x.save(); x.translate(cx, cy); x.rotate(Math.PI / 4);
-        x.fillStyle = '#c9a24a'; x.fillRect(-12, -12, 24, 24);
-        x.fillStyle = '#14301f'; x.fillRect(-6, -6, 12, 12);
-        x.restore();
-      });
-      // rosa-dos-ventos tênue no meio
-      x.save(); x.translate(512, 512); x.globalAlpha = 0.16; x.fillStyle = '#e6c77a';
-      for (let k = 0; k < 8; k++) {
-        x.rotate(Math.PI / 4);
-        x.beginPath(); x.moveTo(0, -(k % 2 ? 210 : 330)); x.lineTo(26, 0); x.lineTo(-26, 0); x.closePath(); x.fill();
-      }
+      x.strokeStyle = 'rgba(240,210,140,.8)'; x.lineWidth = 6; x.strokeRect(26, 26, 972, 972);
+      x.strokeStyle = 'rgba(240,210,140,.35)'; x.lineWidth = 2; x.strokeRect(46, 46, 932, 932);
+      // nome gravado no chão, em diagonal para ficar de frente para a câmera
+      x.save(); x.translate(512, 512); x.rotate(-Math.PI / 4);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.font = '700 118px Cinzel, "Trajan Pro", Georgia, serif';
+      if ('letterSpacing' in x) x.letterSpacing = '10px';
+      x.fillStyle = 'rgba(30,20,70,.35)'; x.fillText('REINO', 3, -78 + 4);
+      x.fillStyle = 'rgba(255,240,200,.30)'; x.fillText('REINO', 0, -78);
+      x.font = '700 78px Cinzel, "Trajan Pro", Georgia, serif';
+      x.fillStyle = 'rgba(30,20,70,.35)'; x.fillText('DOS DADOS', 3, 50 + 4);
+      x.fillStyle = 'rgba(255,240,200,.30)'; x.fillText('DOS DADOS', 0, 50);
       x.restore();
     });
-    const plane = new T.Mesh(new T.PlaneGeometry(6.02, 6.02), new T.MeshStandardMaterial({ map: floor, roughness: 0.95 }));
+    const plane = new T.Mesh(new T.PlaneGeometry(2 * HALF - 0.05, 2 * HALF - 0.05), new T.MeshStandardMaterial({ map: floor, roughness: 0.85 }));
     plane.rotation.x = -Math.PI / 2;
-    plane.position.y = 0.19;
+    plane.position.y = 0.135;
     plane.receiveShadow = true;
     scene.add(plane);
-
-    // pista dos dados: aro de latão com couro escuro dentro
-    const padRim = mesh(new T.TorusGeometry(1.0, 0.045, 10, 64), matStd(0xc9a24a, { metalness: 0.9, roughness: 0.28 }), false);
-    padRim.rotation.x = Math.PI / 2;
-    padRim.position.y = 0.21;
-    scene.add(padRim);
-    const padTop = mesh(new T.CircleGeometry(0.97, 64), matStd(0x2a1a10, { roughness: 0.7 }), false);
-    padTop.rotation.x = -Math.PI / 2;
-    padTop.position.y = 0.2;
-    scene.add(padTop);
-
-    // logo gravado em dourado, de frente para a câmera
-    const logo = canvasTex(1024, 512, (x) => {
-      x.textAlign = 'center'; x.textBaseline = 'middle';
-      const word = (txt, y, size, sp) => {
-        x.font = `700 ${size}px Cinzel, "Trajan Pro", Georgia, serif`;
-        if ('letterSpacing' in x) x.letterSpacing = sp + 'px';
-        x.fillStyle = 'rgba(0,0,0,.55)'; x.fillText(txt, 515, y + 6);
-        const g = x.createLinearGradient(0, y - size / 2, 0, y + size / 2);
-        g.addColorStop(0, '#fff1c4'); g.addColorStop(0.45, '#e2bd6a'); g.addColorStop(0.55, '#b8893a'); g.addColorStop(1, '#f0d48c');
-        x.fillStyle = g; x.fillText(txt, 512, y);
-      };
-      word('REINO', 170, 150, 18);
-      x.strokeStyle = '#c9a24a'; x.lineWidth = 3;
-      x.beginPath(); x.moveTo(250, 268); x.lineTo(440, 268); x.moveTo(584, 268); x.lineTo(774, 268); x.stroke();
-      x.fillStyle = '#c9a24a'; x.save(); x.translate(512, 268); x.rotate(Math.PI / 4); x.fillRect(-9, -9, 18, 18); x.restore();
-      word('DOS DADOS', 360, 104, 12);
-    });
-    const sign = new T.Mesh(new T.PlaneGeometry(2.9, 1.45), new T.MeshBasicMaterial({ map: logo, transparent: true, depthWrite: false }));
-    sign.position.set(-1.05, 0.95, -1.05);
-    sign.quaternion.copy(camera.quaternion);
-    scene.add(sign);
   }
   /* ---------- casas do tabuleiro ---------- */
   function buildTiles(B) {
     B.forEach((b, i) => {
+      const geo = tileGeo(i);
       const group = new T.Group();
-      const p = tilePos(i);
-      group.position.set(p.x, 0, p.z);
-      const corner = i % 7 === 0;
-      const base = mesh(new T.BoxGeometry(0.97, 0.18, 0.97), matStd(0x2b1a0f, { roughness: 0.5 }), false);
-      base.position.y = 0.11;
-      base.receiveShadow = true;
-      group.add(base);
-
+      group.position.set(geo.x, 0, geo.z);
+      let label;
       const cv = document.createElement('canvas');
-      cv.width = cv.height = 256;
+      if (geo.corner) {
+        // pedestal hexagonal dourado
+        const plinth = mesh(new T.CylinderGeometry(1.02, 1.08, 0.34, 6), matStd(0xd9a93a, { metalness: 0.75, roughness: 0.3 }), true);
+        plinth.position.y = 0.1;
+        group.add(plinth);
+        cv.width = cv.height = 512;
+        label = new T.Mesh(new T.PlaneGeometry(2.04, 2.04), new T.MeshLambertMaterial({ transparent: true }));
+        label.position.y = 0.272;
+      } else {
+        const along = geo.side === 0 || geo.side === 2;
+        const col = new T.Color(tileColor(i));
+        const base = mesh(along ? new T.BoxGeometry(0.95, 0.2, DEPTH * 0.97) : new T.BoxGeometry(DEPTH * 0.97, 0.2, 0.95), matStd(col.clone().multiplyScalar(0.62).getHex(), { roughness: 0.4 }), true);
+        base.position.y = 0.1;
+        group.add(base);
+        cv.width = 448; cv.height = 256;
+        label = new T.Mesh(new T.PlaneGeometry(DEPTH * 0.95, 0.93), new T.MeshLambertMaterial({}));
+        label.rotation.z = along ? Math.PI / 2 : 0; // texto sempre legível pela câmera
+        label.position.y = GROUND_Y + 0.002;
+      }
+      label.rotation.x = -Math.PI / 2;
+      label.receiveShadow = true;
+      label.userData.tile = i;
       const ctx = cv.getContext('2d');
       const tex = new T.CanvasTexture(cv);
       tex.encoding = T.sRGBEncoding;
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      const label = new T.Mesh(new T.PlaneGeometry(0.9, 0.9), new T.MeshLambertMaterial({ map: tex }));
-      label.rotation.x = -Math.PI / 2;
-      label.rotation.z = Math.PI / 4; // texto "em pé" para a câmera isométrica
-      label.position.y = GROUND_Y + 0.002;
-      label.receiveShadow = true;
-      label.userData.tile = i;
+      label.material.map = tex;
       group.add(label);
 
+      // onde fica a construção: na ponta de fora da casa
       const slot = new T.Group();
-      slot.position.y = GROUND_Y;
+      slot.position.y = geo.corner ? 0.27 : GROUND_Y;
+      if (!geo.corner) slot.position.addScaledVector(geo.out, 0.42);
       group.add(slot);
 
       scene.add(group);
-      tiles[i] = { group, label, cv, ctx, tex, slot, key: '', bkey: '' };
+      tiles[i] = { group, label, cv, ctx, tex, slot, geo, key: '', bkey: '' };
 
-      // decoração fixa das casas especiais
       const deco = makeSpecial(b, i);
-      if (deco) { deco.position.y = GROUND_Y; group.add(deco); }
+      if (deco) { deco.position.y = geo.corner ? 0.27 : GROUND_Y; if (b.t === 'attr') deco.position.addScaledVector(geo.out, 0.25); group.add(deco); }
     });
   }
 
@@ -210,53 +205,97 @@ const View = (() => {
     ctx.closePath();
   }
 
+  function wrap2(ctx, text, maxW) {
+    const words = text.split(' ');
+    let best = [text];
+    if (ctx.measureText(text).width > maxW && words.length > 1) {
+      let bestW = Infinity;
+      for (let k = 1; k < words.length; k++) {
+        const a = words.slice(0, k).join(' ');
+        const b = words.slice(k).join(' ');
+        const w = Math.max(ctx.measureText(a).width, ctx.measureText(b).width);
+        if (w < bestW) { bestW = w; best = [a, b]; }
+      }
+    }
+    return best;
+  }
   function drawTile(i, d) {
     const t = tiles[i];
     const key = JSON.stringify(d);
     if (key === t.key) return;
     t.key = key;
     const ctx = t.ctx;
-    ctx.clearRect(0, 0, 256, 256);
-    const corner = d.big;
-    // papel marfim (cantos em feltro verde)
-    const g = ctx.createLinearGradient(0, 0, 0, 256);
-    if (corner) { g.addColorStop(0, '#2c5c47'); g.addColorStop(1, '#173826'); } else { g.addColorStop(0, '#fbf3e0'); g.addColorStop(1, '#eadbb8'); }
-    ctx.fillStyle = g;
-    roundRect(ctx, 2, 2, 252, 252, 14);
-    ctx.fill();
-    // faixa da região no alto
-    if (d.band) {
-      ctx.save(); roundRect(ctx, 2, 2, 252, 252, 14); ctx.clip();
-      ctx.fillStyle = d.band; ctx.fillRect(0, 0, 256, 52);
-      ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, 0, 256, 18);
-      ctx.restore();
-    }
-    // filete dourado
-    ctx.strokeStyle = '#b8893a'; ctx.lineWidth = 4;
-    roundRect(ctx, 14, d.band ? 62 : 14, 228, d.band ? 180 : 228, 8); ctx.stroke();
-    if (d.owner) {
-      ctx.strokeStyle = d.owner; ctx.lineWidth = 16;
-      roundRect(ctx, 10, 10, 236, 236, 12); ctx.stroke();
-    }
+    const W = t.cv.width;
+    const H = t.cv.height;
+    ctx.clearRect(0, 0, W, H);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    if (d.emoji) {
-      ctx.save();
-      if ('filter' in ctx) ctx.filter = 'sepia(0.85) saturate(0.8) contrast(1.05)';
-      ctx.font = '78px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-      ctx.globalAlpha = d.dimEmoji ? 0.35 : 0.95;
-      ctx.fillText(d.emoji, 128, 128);
+    if (t.geo.corner) {
+      // hexágono dourado com o nome
+      const R = 236;
+      const hex = (r) => {
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2;
+          const px = 256 + Math.sin(a) * r;
+          const py = 256 + Math.cos(a) * r;
+          if (k) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+        }
+        ctx.closePath();
+      };
+      const g = ctx.createRadialGradient(256, 200, 20, 256, 256, 280);
+      g.addColorStop(0, '#fff0c2'); g.addColorStop(0.6, '#f0c862'); g.addColorStop(1, '#c08a2a');
+      hex(R); ctx.fillStyle = g; ctx.fill();
+      hex(R - 22); ctx.strokeStyle = 'rgba(120,70,10,.55)'; ctx.lineWidth = 5; ctx.stroke();
+      hex(R - 34); ctx.strokeStyle = 'rgba(255,250,220,.6)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.save(); ctx.translate(256, 256); ctx.rotate(-Math.PI / 4);
+      ctx.font = '800 56px Inter, "Trebuchet MS", sans-serif';
+      const lines = wrap2(ctx, d.name, 300);
+      lines.forEach((ln, k) => {
+        const y = 150 + (k - (lines.length - 1) / 2) * 60;
+        ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(255,248,225,.9)'; ctx.strokeText(ln, 0, y);
+        ctx.fillStyle = '#3a2a6a'; ctx.fillText(ln, 0, y);
+      });
+      ctx.restore();
+      if (d.badge) { ctx.font = '70px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.fillText(d.badge, 256, 120); }
+      t.tex.needsUpdate = true;
+      return;
+    }
+    // casa comprida: cor viva com brilho
+    const special = d.kind === 'card' || d.kind === 'tax';
+    ctx.fillStyle = special ? '#f6f1e6' : d.bg;
+    roundRect(ctx, 3, 3, W - 6, H - 6, 26);
+    ctx.fill();
+    const sh = ctx.createLinearGradient(0, 0, 0, H);
+    sh.addColorStop(0, 'rgba(255,255,255,.45)'); sh.addColorStop(0.5, 'rgba(255,255,255,.1)'); sh.addColorStop(1, 'rgba(0,0,30,.12)');
+    ctx.fillStyle = sh;
+    roundRect(ctx, 3, 3, W - 6, H - 6, 26);
+    ctx.fill();
+    if (special) { // moldura rebuscada, como as cartas
+      ctx.strokeStyle = '#8a7fb8'; ctx.lineWidth = 6; roundRect(ctx, 18, 18, W - 36, H - 36, 16); ctx.stroke();
+      ctx.lineWidth = 2; roundRect(ctx, 30, 30, W - 60, H - 60, 10); ctx.stroke();
+    }
+    if (d.owner) { ctx.strokeStyle = d.owner; ctx.lineWidth = 18; roundRect(ctx, 12, 12, W - 24, H - 24, 20); ctx.stroke(); }
+    // ponta de dentro (perto da praça): preço; resto: nome
+    const outerRight = t.geo.side >= 2;
+    const priceX = outerRight ? 70 : W - 70;
+    const nameX = outerRight ? W / 2 + 40 : W / 2 - 40;
+    ctx.font = '800 50px Inter, "Trebuchet MS", sans-serif';
+    let size = 50;
+    let lines = wrap2(ctx, d.name, 300);
+    while (size > 34 && lines.some((ln) => ctx.measureText(ln).width > 300)) { size -= 2; ctx.font = `800 ${size}px Inter, "Trebuchet MS", sans-serif`; lines = wrap2(ctx, d.name, 300); }
+    ctx.fillStyle = special ? '#4b3a86' : '#24204a';
+    lines.forEach((ln, k) => ctx.fillText(ln, nameX, H / 2 + (k - (lines.length - 1) / 2) * (size * 1.08), 310));
+    if (d.text) {
+      ctx.save(); ctx.translate(priceX, H / 2); ctx.rotate(outerRight ? -Math.PI / 2 : Math.PI / 2);
+      ctx.font = '800 40px Inter, "Trebuchet MS", sans-serif';
+      const pw = ctx.measureText(d.text).width + 30;
+      ctx.fillStyle = d.owner || 'rgba(36,32,74,.85)';
+      roundRect(ctx, -pw / 2, -27, pw, 54, 27); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(d.text, 0, 2);
       ctx.restore();
     }
-    if (d.text) {
-      ctx.font = `700 ${corner ? 40 : 52}px Cinzel, "Trajan Pro", Georgia, serif`;
-      ctx.fillStyle = corner ? '#e6c77a' : (d.owner || '#3a2414');
-      ctx.fillText(d.text, 128, corner ? 128 : 206, 220);
-    }
-    if (d.badge) {
-      ctx.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-      ctx.fillText(d.badge, 210, 96);
-    }
+    if (d.badge) { ctx.font = '56px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.fillText(d.badge, outerRight ? W - 50 : 50, 60); }
     t.tex.needsUpdate = true;
   }
 
@@ -295,16 +334,16 @@ const View = (() => {
   }
 
   // largura de cada nível: cada construção parece maior que a anterior
-  const LEVEL_W = [0, 0.82, 0.98, 1.08, 1.12];
+  const LEVEL_W = [0, 0.66, 0.78, 0.86, 0.9];
   function makeBuilding(kind, lvl, color) {
     const g = new T.Group();
     if (kind === 'attr') return g;
     if (lvl === 0) { const f = flag(color); f.position.set(0.05, 0, -0.05); g.add(f); return g; }
     g.add(spriteImg('predio' + lvl, LEVEL_W[lvl], 0.12));
     // bandeirinha do dono atrás da construção
-    const f = flag(color); f.position.set(-0.34, 0, -0.34); f.scale.setScalar(0.75); g.add(f);
+    const f = flag(color); f.position.set(-0.3, 0, -0.3); f.scale.setScalar(0.65); g.add(f);
     if (lvl === 4) { // brilho dourado do marco máximo
-      const glow = new T.Mesh(new T.RingGeometry(0.34, 0.46, 40), new T.MeshBasicMaterial({ color: 0xfde68a, transparent: true, opacity: 0.5, side: T.DoubleSide, depthWrite: false }));
+      const glow = new T.Mesh(new T.RingGeometry(0.28, 0.38, 40), new T.MeshBasicMaterial({ color: 0xfde68a, transparent: true, opacity: 0.5, side: T.DoubleSide, depthWrite: false }));
       glow.rotation.x = -Math.PI / 2; glow.position.y = 0.01; g.add(glow);
       spinners.push((t) => { glow.material.opacity = 0.3 + Math.sin(t * 3) * 0.2; glow.scale.setScalar(1 + Math.sin(t * 3) * 0.06); });
     }
@@ -339,19 +378,8 @@ const View = (() => {
       core.position.y = 0.45; core.rotation.y = Math.PI / 4;
       g.add(ring, core);
       spinners.push((t) => { ring.rotation.z = t * 2; core.material.opacity = 0.5 + Math.sin(t * 4) * 0.25; });
-    } else if (b.t === 'card') {
-      const ped = mesh(new T.CylinderGeometry(0.1, 0.16, 0.12, 8), matStd(0xc9a24a, { metalness: 0.85, roughness: 0.3 })); ped.position.y = 0.06; g.add(ped);
-      const ball = new T.Mesh(new T.SphereGeometry(0.17, 18, 14), matStd(0xe0a24a, { emissive: 0x8a4a10, emissiveIntensity: 0.5, transparent: true, opacity: 0.9, roughness: 0.08, metalness: 0.1 }));
-      ball.castShadow = true;
-      g.add(ball);
-      spinners.push((t) => { ball.position.y = 0.36 + Math.sin(t * 2 + i) * 0.05; ball.rotation.y = t; });
-    } else if (b.t === 'tax') {
-      const chest = mesh(new T.BoxGeometry(0.34, 0.2, 0.24), mat(0xa16207)); chest.position.y = 0.1; g.add(chest);
-      const lid = mesh(new T.CylinderGeometry(0.12, 0.12, 0.34, 10, 1, false, 0, Math.PI), mat(0xca8a04)); lid.rotation.z = Math.PI / 2; lid.position.y = 0.2; g.add(lid);
-      for (let k = 0; k < 4; k++) { const c = coinMesh(); c.position.set(-0.08 + k * 0.05, 0.3 + k * 0.02, 0); g.add(c); }
-      g.rotation.y = Math.PI / 4;
     } else if (b.t === 'attr') {
-      g.add(spriteImg('atracao' + ({ 6: 1, 13: 2, 20: 3, 27: 4 }[i]), 0.95, 0.1));
+      g.add(spriteImg('atracao' + ({ 6: 1, 13: 2, 20: 3, 27: 4 }[i]), 0.78, 0.1));
     } else return null;
     return g;
   }
@@ -381,10 +409,13 @@ const View = (() => {
     return g;
   }
 
-  const OFF = [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]];
+  const OFF = [[-0.24, -0.5], [0.24, -0.5], [-0.24, -0.1], [0.24, -0.1]]; // [lateral, radial]
   function tokenTarget(idx, pos) {
-    const p = tilePos(pos);
-    return new T.Vector3(p.x + OFF[idx][0], GROUND_Y, p.z + OFF[idx][1]);
+    const g = tileGeo(pos);
+    const p = new T.Vector3(g.x, g.corner ? 0.27 : GROUND_Y, g.z);
+    if (g.corner) return p.add(new T.Vector3([-0.32, 0.32, -0.32, 0.32][idx], 0, [-0.32, -0.32, 0.32, 0.32][idx]));
+    const lat = new T.Vector3(-g.out.z, 0, g.out.x);
+    return p.addScaledVector(lat, OFF[idx][0]).addScaledVector(g.out, OFF[idx][1]);
   }
 
   /* ---------- dados ---------- */
@@ -408,11 +439,11 @@ const View = (() => {
   };
   function buildDice() {
     const mats = FACE_ORDER.map(dieFace);
-    const geo = new T.BoxGeometry(0.55, 0.55, 0.55);
+    const geo = new T.BoxGeometry(0.62, 0.62, 0.62);
     dice = [0, 1].map((k) => {
       const d = new T.Mesh(geo, mats);
       d.castShadow = true;
-      d.position.set(-0.45 + k * 0.9, 0.53, 0.45 - k * 0.9);
+      d.position.set(-0.5 + k, 0.45, 0.5 - k);
       d.quaternion.setFromEuler(FACE_UP[k ? 3 : 5]);
       scene.add(d);
       return d;
@@ -425,7 +456,7 @@ const View = (() => {
   }
   async function roll(a, b, shuffle) {
     const targets = [finalQuat(a), finalQuat(b)];
-    const rest = [new T.Vector3(-0.45, 0.53, 0.45), new T.Vector3(0.45, 0.53, -0.45)];
+    const rest = [new T.Vector3(-0.5, 0.45, 0.5), new T.Vector3(0.5, 0.45, -0.5)];
     if (fast()) { dice.forEach((d, k) => { d.quaternion.copy(targets[k]); d.position.copy(rest[k]); }); return; }
     const spin = dice.map(() => new T.Vector3(Math.random() * 14 + 8, Math.random() * 10, Math.random() * 14 + 8));
     const start = dice.map((d) => d.quaternion.clone());
@@ -433,7 +464,7 @@ const View = (() => {
     await animate(0.75, (k) => {
       dice.forEach((d, j) => {
         const h = Math.sin(k * Math.PI) * 1.6 + Math.abs(Math.sin(k * Math.PI * 3)) * 0.2 * (1 - k);
-        d.position.set(rest[j].x * (0.6 + k * 0.4), 0.53 + h, rest[j].z * (0.6 + k * 0.4));
+        d.position.set(rest[j].x * (0.6 + k * 0.4), 0.45 + h, rest[j].z * (0.6 + k * 0.4));
         if (k < 0.7) {
           d.quaternion.copy(start[j]);
           d.rotateX(spin[j].x * k); d.rotateY(spin[j].y * k); d.rotateZ(spin[j].z * k);
@@ -639,7 +670,8 @@ const View = (() => {
     renderer.setSize(w, h, false);
     camera.updateMatrixWorld();
     const pts = [];
-    [-4.35, 4.35].forEach((x) => [-4.35, 4.35].forEach((z) => { pts.push(new T.Vector3(x, 0.9, z), new T.Vector3(x, -0.4, z)); }));
+    const E = HALF + DEPTH + 0.25;
+    [-E, E].forEach((x) => [-E, E].forEach((z) => { pts.push(new T.Vector3(x, 0.9, z), new T.Vector3(x, -0.4, z)); }));
     let minx = Infinity; let maxx = -Infinity; let miny = Infinity; let maxy = -Infinity;
     pts.forEach((p) => {
       const v = p.applyMatrix4(camera.matrixWorldInverse);
